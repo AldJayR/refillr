@@ -2,13 +2,13 @@ import { SignIn } from '@clerk/tanstack-react-start'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/sign-in')({
-  component: SignInPage,
+    component: SignInPage,
 })
 
 function SignInPage() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950">
-      <SignIn />
-    </div>
-  )
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-slate-950">
+            <SignIn />
+        </div>
+    )
 }

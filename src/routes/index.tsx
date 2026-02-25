@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   Flame,
@@ -15,50 +15,44 @@ import TrustBadge from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getNearbyMerchants } from '@/server/merchants.functions'
-import { useEffect, useCallback } from 'react'
+import { z } from 'zod'
+
+const searchSchema = z.object({
+  lat: z.number().optional().default(14.5995),
+  lng: z.number().optional().default(120.9842),
+})
 
 export const Route = createFileRoute('/')({
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ lat: search.lat, lng: search.lng }),
+  loader: ({ deps }) =>
+    getNearbyMerchants({
+      data: { latitude: deps.lat, longitude: deps.lng, radiusMeters: 5000 },
+    }),
   component: Dashboard,
 })
 
-
 function Dashboard() {
+  const merchants = Route.useLoaderData()
+  const { lat, lng } = Route.useSearch()
+  const navigate = Route.useNavigate()
   const [selectedMerchant, setSelectedMerchant] = useState<string | null>(null)
-  const [merchants, setMerchants] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [userCoords, setUserCoords] = useState<[number, number]>([120.9842, 14.5995])
 
-  const fetchMerchants = useCallback(async () => {
-    setLoading(true)
-    try {
-      const result = await getNearbyMerchants({
-        data: {
-          latitude: userCoords[1],
-          longitude: userCoords[0],
-          radiusMeters: 5000,
-        }
-      })
-      setMerchants(result)
-    } catch {
-      console.error('Failed to fetch merchants')
-    } finally {
-      setLoading(false)
-    }
-  }, [userCoords])
-
+  // Detect geolocation once and update search params to trigger loader re-run
   useEffect(() => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((pos) => {
-        setUserCoords([pos.coords.longitude, pos.coords.latitude])
+        const newLat = pos.coords.latitude
+        const newLng = pos.coords.longitude
+        // Only navigate if coords actually changed from defaults
+        if (Math.abs(newLat - lat) > 0.001 || Math.abs(newLng - lng) > 0.001) {
+          navigate({ search: { lat: newLat, lng: newLng } })
+        }
       })
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    fetchMerchants()
-  }, [fetchMerchants])
-
-  const mapMarkers = merchants.map(m => ({
+  const mapMarkers = merchants.map((m: any) => ({
     id: m._id,
     coordinates: m.location.coordinates,
     shopName: m.shopName,
@@ -109,11 +103,9 @@ function Dashboard() {
         </div>
 
         <div className="grid gap-3">
-          {loading ? (
-            <div className="text-center py-8 text-slate-500">Finding nearby dealers...</div>
-          ) : merchants.length === 0 ? (
+          {merchants.length === 0 ? (
             <div className="text-center py-8 text-slate-500">No dealers found in your area.</div>
-          ) : merchants.map((merchant) => (
+          ) : merchants.map((merchant: any) => (
             <div
               key={merchant._id}
               className={cn(

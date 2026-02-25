@@ -1,52 +1,46 @@
 import TrustBadge from '@/components/TrustBadge'
 import { getNearbyMerchants } from '@/server/merchants.functions'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock, MapPin, Filter, Phone } from 'lucide-react'
+import { z } from 'zod'
+
+const searchSchema = z.object({
+  lat: z.number().optional().default(14.5995),
+  lng: z.number().optional().default(120.9842),
+})
 
 export const Route = createFileRoute('/merchants')({
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }) => ({ lat: search.lat, lng: search.lng }),
+  loader: ({ deps }) =>
+    getNearbyMerchants({
+      data: { latitude: deps.lat, longitude: deps.lng, radiusMeters: 10000 },
+    }),
   component: MerchantsList,
 })
 
-
 function MerchantsList() {
-  const [merchants, setMerchants] = useState<any[]>([])
-  const [_loading, setLoading] = useState(true)
-  const [userCoords, setUserCoords] = useState<[number, number]>([120.9842, 14.5995])
+  const merchants = Route.useLoaderData()
+  const { lat, lng } = Route.useSearch()
+  const navigate = Route.useNavigate()
 
-  const fetchMerchants = useCallback(async () => {
-    setLoading(true)
-    try {
-      const result = await getNearbyMerchants({
-        data: {
-          latitude: userCoords[1],
-          longitude: userCoords[0],
-          radiusMeters: 10000,
-        }
-      })
-      setMerchants(result)
-    } catch {
-      console.error('Failed to fetch merchants')
-    } finally {
-      setLoading(false)
-    }
-  }, [userCoords])
-
+  // Detect geolocation once and update search params to trigger loader re-run
   useEffect(() => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((pos) => {
-        setUserCoords([pos.coords.longitude, pos.coords.latitude])
+        const newLat = pos.coords.latitude
+        const newLng = pos.coords.longitude
+        if (Math.abs(newLat - lat) > 0.001 || Math.abs(newLng - lng) > 0.001) {
+          navigate({ search: { lat: newLat, lng: newLng } })
+        }
       })
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    fetchMerchants()
-  }, [fetchMerchants])
-
-  const openMerchants = merchants.filter(m => m.isOpen)
-  const closedMerchants = merchants.filter(m => !m.isOpen)
+  const openMerchants = merchants.filter((m: any) => m.isOpen)
+  const closedMerchants = merchants.filter((m: any) => !m.isOpen)
 
   return (
     <div className="min-h-screen bg-slate-950 p-4">
@@ -72,7 +66,7 @@ function MerchantsList() {
                 Open Now ({openMerchants.length})
               </h2>
               <div className="space-y-3">
-                {openMerchants.map((merchant) => (
+                {openMerchants.map((merchant: any) => (
                   <div
                     key={merchant._id}
                     className="glass-card rounded-xl p-5 hover-scale animate-fade-in group cursor-pointer"
@@ -121,7 +115,7 @@ function MerchantsList() {
                 Closed ({closedMerchants.length})
               </h2>
               <div className="space-y-3 opacity-60">
-                {closedMerchants.map((merchant) => (
+                {closedMerchants.map((merchant: any) => (
                   <div
                     key={merchant._id}
                     className="glass-card rounded-xl p-5 opacity-60 hover-scale animate-fade-in"

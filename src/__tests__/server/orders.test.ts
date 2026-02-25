@@ -182,7 +182,7 @@ describe('getMerchantOrders', () => {
       }),
     } as never)
 
-    const result = await getMerchantOrders({ data: { merchantId: mockMerchantId.toString() } } as any)
+    await getMerchantOrders({ data: { merchantId: mockMerchantId.toString() } } as any)
     // With a valid merchantId, it should query and return the result
     expect(OrderModel.find).toHaveBeenCalled()
   })

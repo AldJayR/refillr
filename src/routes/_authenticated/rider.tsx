@@ -18,8 +18,20 @@ import {
     markDispatched,
     markDelivered
 } from '@/server/rider.functions'
+import { z } from 'zod'
 
-export const Route = createFileRoute('/rider')({
+const searchSchema = z.object({
+    lat: z.number().optional().default(14.5995),
+    lng: z.number().optional().default(120.9842),
+})
+
+export const Route = createFileRoute('/_authenticated/rider')({
+    validateSearch: searchSchema,
+    loaderDeps: ({ search }) => ({ lat: search.lat, lng: search.lng }),
+    loader: ({ deps }) =>
+        getPendingOrdersNearby({
+            data: { latitude: deps.lat, longitude: deps.lng, radiusMeters: 10000 },
+        }),
     component: RiderDashboard,
 })
 
@@ -44,19 +56,36 @@ const STATUS_ICONS: Record<string, typeof Package> = {
 }
 
 function RiderDashboard() {
-    const [orders, setOrders] = useState<OrderItem[]>([])
-    const [activeOrders, setActiveOrders] = useState<OrderItem[]>([])
-    const [loading, setLoading] = useState(true)
-    const [actionLoading, setActionLoading] = useState<string | null>(null)
-    const [riderCoords, setRiderCoords] = useState<[number, number]>([120.9842, 14.5995])
+    const initialOrders = Route.useLoaderData()
+    const { lat, lng } = Route.useSearch()
+    const navigate = Route.useNavigate()
 
+    const [orders, setOrders] = useState<OrderItem[]>(initialOrders as OrderItem[])
+    const [activeOrders, setActiveOrders] = useState<OrderItem[]>([])
+    const [loading, setLoading] = useState(false)
+    const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+    // Detect geolocation once and update search params to trigger loader re-run
+    useEffect(() => {
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const newLat = pos.coords.latitude
+                const newLng = pos.coords.longitude
+                if (Math.abs(newLat - lat) > 0.001 || Math.abs(newLng - lng) > 0.001) {
+                    navigate({ search: { lat: newLat, lng: newLng } })
+                }
+            })
+        }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Manual refresh for polling
     const fetchOrders = useCallback(async () => {
         setLoading(true)
         try {
             const result = await getPendingOrdersNearby({
                 data: {
-                    latitude: riderCoords[1],
-                    longitude: riderCoords[0],
+                    latitude: lat,
+                    longitude: lng,
                     radiusMeters: 10000,
                 }
             })
@@ -66,19 +95,11 @@ function RiderDashboard() {
         } finally {
             setLoading(false)
         }
-    }, [riderCoords])
+    }, [lat, lng])
 
+    // Poll every 30 seconds for new orders
     useEffect(() => {
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                setRiderCoords([pos.coords.longitude, pos.coords.latitude])
-            })
-        }
-    }, [])
-
-    useEffect(() => {
-        fetchOrders()
-        const interval = setInterval(fetchOrders, 30000) // Poll every 30 seconds
+        const interval = setInterval(fetchOrders, 30000)
         return () => clearInterval(interval)
     }, [fetchOrders])
 
@@ -86,9 +107,7 @@ function RiderDashboard() {
         setActionLoading(orderId)
         try {
             const result = await acceptOrder({
-                data: {
-                    orderId,
-                }
+                data: { orderId }
             }) as { success: boolean; orderId?: string }
 
             if (result.success) {
@@ -154,7 +173,7 @@ function RiderDashboard() {
                         <div>
                             <h1 className="text-xl font-bold text-white">Rider Dashboard</h1>
                             <p className="text-xs text-slate-400">
-                                📍 {riderCoords[1].toFixed(4)}°N, {riderCoords[0].toFixed(4)}°E
+                                📍 {lat.toFixed(4)}°N, {lng.toFixed(4)}°E
                             </p>
                         </div>
                     </div>
@@ -233,15 +252,10 @@ function RiderDashboard() {
                 <div>
                     <h2 className="text-sm font-medium text-slate-400 mb-3 flex items-center gap-2">
                         <Package size={14} />
-                        Available Orders {!loading && `(${orders.length})`}
+                        Available Orders ({orders.length})
                     </h2>
 
-                    {loading ? (
-                        <div className="text-center py-12">
-                            <RefreshCw size={32} className="text-slate-600 mx-auto mb-4 animate-spin" />
-                            <p className="text-slate-400">Finding nearby orders...</p>
-                        </div>
-                    ) : orders.length === 0 ? (
+                    {orders.length === 0 ? (
                         <div className="text-center py-12">
                             <Package size={48} className="text-slate-600 mx-auto mb-4" />
                             <p className="text-slate-400 mb-2">No pending orders nearby</p>

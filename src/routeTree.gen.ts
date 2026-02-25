@@ -11,12 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as RiderRouteImport } from './routes/rider'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as MerchantsRouteImport } from './routes/merchants'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as OrderNewRouteImport } from './routes/order/new'
+import { Route as AuthenticatedRiderRouteImport } from './routes/_authenticated/rider'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as AuthenticatedOrderNewRouteImport } from './routes/_authenticated/order/new'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -28,24 +29,13 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RiderRoute = RiderRouteImport.update({
-  id: '/rider',
-  path: '/rider',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersRoute = OrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MerchantsRoute = MerchantsRouteImport.update({
   id: '/merchants',
   path: '/merchants',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -53,85 +43,99 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrderNewRoute = OrderNewRouteImport.update({
+const AuthenticatedRiderRoute = AuthenticatedRiderRouteImport.update({
+  id: '/rider',
+  path: '/rider',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedOrderNewRoute = AuthenticatedOrderNewRouteImport.update({
   id: '/order/new',
   path: '/order/new',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
-  '/orders': typeof OrdersRoute
-  '/profile': typeof ProfileRoute
-  '/rider': typeof RiderRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/order/new': typeof OrderNewRoute
+  '/orders': typeof AuthenticatedOrdersRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/rider': typeof AuthenticatedRiderRoute
+  '/order/new': typeof AuthenticatedOrderNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
-  '/orders': typeof OrdersRoute
-  '/profile': typeof ProfileRoute
-  '/rider': typeof RiderRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/order/new': typeof OrderNewRoute
+  '/orders': typeof AuthenticatedOrdersRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/rider': typeof AuthenticatedRiderRoute
+  '/order/new': typeof AuthenticatedOrderNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/merchants': typeof MerchantsRoute
-  '/orders': typeof OrdersRoute
-  '/profile': typeof ProfileRoute
-  '/rider': typeof RiderRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/order/new': typeof OrderNewRoute
+  '/_authenticated/orders': typeof AuthenticatedOrdersRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/rider': typeof AuthenticatedRiderRoute
+  '/_authenticated/order/new': typeof AuthenticatedOrderNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/merchants'
+    | '/sign-in'
+    | '/sign-up'
     | '/orders'
     | '/profile'
     | '/rider'
-    | '/sign-in'
-    | '/sign-up'
     | '/order/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/merchants'
+    | '/sign-in'
+    | '/sign-up'
     | '/orders'
     | '/profile'
     | '/rider'
-    | '/sign-in'
-    | '/sign-up'
     | '/order/new'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/merchants'
-    | '/orders'
-    | '/profile'
-    | '/rider'
     | '/sign-in'
     | '/sign-up'
-    | '/order/new'
+    | '/_authenticated/orders'
+    | '/_authenticated/profile'
+    | '/_authenticated/rider'
+    | '/_authenticated/order/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   MerchantsRoute: typeof MerchantsRoute
-  OrdersRoute: typeof OrdersRoute
-  ProfileRoute: typeof ProfileRoute
-  RiderRoute: typeof RiderRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
-  OrderNewRoute: typeof OrderNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -150,32 +154,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rider': {
-      id: '/rider'
-      path: '/rider'
-      fullPath: '/rider'
-      preLoaderRoute: typeof RiderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/orders': {
-      id: '/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof OrdersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/merchants': {
       id: '/merchants'
       path: '/merchants'
       fullPath: '/merchants'
       preLoaderRoute: typeof MerchantsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -185,25 +175,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/order/new': {
-      id: '/order/new'
+    '/_authenticated/rider': {
+      id: '/_authenticated/rider'
+      path: '/rider'
+      fullPath: '/rider'
+      preLoaderRoute: typeof AuthenticatedRiderRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/orders': {
+      id: '/_authenticated/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof AuthenticatedOrdersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/order/new': {
+      id: '/_authenticated/order/new'
       path: '/order/new'
       fullPath: '/order/new'
-      preLoaderRoute: typeof OrderNewRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedOrderNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedRiderRoute: typeof AuthenticatedRiderRoute
+  AuthenticatedOrderNewRoute: typeof AuthenticatedOrderNewRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedRiderRoute: AuthenticatedRiderRoute,
+  AuthenticatedOrderNewRoute: AuthenticatedOrderNewRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   MerchantsRoute: MerchantsRoute,
-  OrdersRoute: OrdersRoute,
-  ProfileRoute: ProfileRoute,
-  RiderRoute: RiderRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-  OrderNewRoute: OrderNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

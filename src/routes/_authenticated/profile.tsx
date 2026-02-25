@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
     ArrowLeft,
@@ -22,7 +22,8 @@ import {
 import { cn } from '@/lib/utils'
 import { getSavedAddresses, saveAddress, deleteAddress } from '@/server/user.functions'
 
-export const Route = createFileRoute('/profile')({
+export const Route = createFileRoute('/_authenticated/profile')({
+    loader: () => getSavedAddresses(),
     component: ProfilePage,
 })
 
@@ -48,8 +49,8 @@ const LABEL_COLORS = {
 }
 
 function ProfilePage() {
-    const [addresses, setAddresses] = useState<SavedAddress[]>([])
-    const [loading, setLoading] = useState(true)
+    const loaderAddresses = Route.useLoaderData()
+    const [addresses, setAddresses] = useState<SavedAddress[]>(loaderAddresses as SavedAddress[])
     const [showForm, setShowForm] = useState(false)
     const [saving, setSaving] = useState(false)
 
@@ -60,28 +61,13 @@ function ProfilePage() {
     const [city, setCity] = useState('')
     const [isDefault, setIsDefault] = useState(false)
 
-
-    useEffect(() => {
-        const fetchAddresses = async () => {
-            try {
-                const result = await getSavedAddresses()
-                setAddresses(result as SavedAddress[])
-            } catch {
-                console.error('Failed to fetch addresses')
-            } finally {
-                setLoading(false)
-            }
-        }
-        fetchAddresses()
-    }, [])
-
     const handleSave = async () => {
         setSaving(true)
         try {
             const success = await saveAddress({
                 data: {
                     label,
-                    coordinates: [120.9842, 14.5995] as [number, number], // In production, use map picker
+                    coordinates: [120.9842, 14.5995] as [number, number],
                     address,
                     baranggay: baranggay || undefined,
                     city: city || undefined,
@@ -222,11 +208,7 @@ function ProfilePage() {
                 )}
 
                 {/* Address List */}
-                {loading ? (
-                    <div className="text-center py-12">
-                        <p className="text-slate-400">Loading addresses...</p>
-                    </div>
-                ) : addresses.length === 0 && !showForm ? (
+                {addresses.length === 0 && !showForm ? (
                     <div className="text-center py-12">
                         <MapPin size={48} className="text-slate-600 mx-auto mb-4" />
                         <p className="text-slate-400 mb-2">No saved addresses</p>
