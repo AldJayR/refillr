@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "clerk": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "computedHash": "fa60121c8ac5217de62cc523dec49fcd561becd8cc07c66b0122fce29e30b66d"
+    },
+    "tanstack-start-best-practices": {
+      "source": "deckardger/tanstack-agent-skills",
+      "sourceType": "github",
+      "computedHash": "c27c53eebac3b0d0913af4760a55f19a29d71a7e6980db6adeb62e8b9a0d0c55"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "61f8c307aa8ce0c4c52da8886d42e344dab83f76f9b5360cf8923b25fb1d67bb"
+    }
+  }
+}
