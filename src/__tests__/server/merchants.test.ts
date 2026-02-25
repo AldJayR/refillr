@@ -1,15 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Types } from 'mongoose'
 
-// Mock createServerFn to bypass TanStack middleware — call handler directly
-vi.mock('@tanstack/react-start', () => ({
-  createServerFn: () => ({
-    handler: <T, R>(fn: (args: { data: T }) => R) => (args: { data: T }) => fn(args),
-  }),
+// Mock createServerFn and createMiddleware to bypass TanStack middleware and provide context
+vi.mock('@tanstack/react-start', () => {
+  const handler = (fn: any) => (args: any) => fn({
+    ...args,
+    context: { userId: 'user_123', riderId: 'rider_123' }
+  })
+  const builder = {
+    middleware: () => builder,
+    validator: () => builder,
+    inputValidator: () => builder,
+    handler,
+  }
+  const middlewareBuilder = {
+    server: () => middlewareBuilder,
+    middleware: () => middlewareBuilder,
+  }
+  return {
+    createServerFn: () => builder,
+    createMiddleware: () => middlewareBuilder,
+  }
+})
+
+vi.mock('@clerk/tanstack-react-start/server', () => ({
+  auth: vi.fn().mockResolvedValue({ userId: 'user_123' }),
 }))
 
-import { getNearbyMerchants, getMerchantById, createMerchant, updateMerchantPricing, getMerchantsInPolygon } from '@/server/merchants.functions'
+vi.mock('@tanstack/react-router', () => ({
+  redirect: vi.fn(),
+}))
+
+import { getNearbyMerchants, getMerchantById, createMerchant, updateMerchantPricing, getMerchantsInPolygon, getOrderAnalytics, updateInventory } from '@/server/merchants.functions'
 import { MerchantModel } from '@/models/Merchant.server'
+import { OrderModel } from '@/models/Order.server'
 
 const mockMerchant = {
   _id: new Types.ObjectId(),
@@ -32,6 +56,15 @@ vi.mock('@/lib/db.server', () => ({
 
 vi.mock('@/models/Merchant.server', () => ({
   MerchantModel: {
+    find: vi.fn(),
+    findById: vi.fn(),
+    create: vi.fn(),
+    findByIdAndUpdate: vi.fn(),
+  },
+}))
+
+vi.mock('@/models/Order.server', () => ({
+  OrderModel: {
     find: vi.fn(),
     findById: vi.fn(),
     create: vi.fn(),
@@ -133,7 +166,7 @@ describe('getMerchantById', () => {
   })
 
   it('should return null for invalid id', async () => {
-    const result = await getMerchantById({ data: undefined } as any)
+    const result = await getMerchantById({ data: {} } as any)
 
     expect(result).toBeNull()
   })
@@ -237,16 +270,64 @@ describe('getMerchantsInPolygon', () => {
 
     const polygon = [[120.9, 14.5], [121.0, 14.5], [121.0, 14.6], [120.9, 14.6]]
 
-    await getMerchantsInPolygon({ data: { polygon } } as any)
+    const result = await getMerchantsInPolygon({ data: { polygon } } as any)
 
-    expect(MerchantModel.find).toHaveBeenCalledWith(
-      expect.objectContaining({
-        location: expect.objectContaining({
-          $geoWithin: expect.objectContaining({
-            $polygon: expect.any(Array),
-          }),
-        }),
+    expect(MerchantModel.find).toHaveBeenCalledWith(expect.objectContaining({
+      location: expect.objectContaining({
+        $geoWithin: { $polygon: expect.any(Array) }
       })
+    }))
+    expect(result).toHaveLength(1)
+  })
+})
+
+describe('getOrderAnalytics', () => {
+  it('should calculate sales analytics for a merchant', async () => {
+    const mockOrder = {
+      totalPrice: 1000,
+      tankBrand: 'Gasul',
+      tankSize: '11kg',
+      status: 'delivered',
+    }
+    vi.mocked(OrderModel.find).mockReturnValue({
+      lean: vi.fn().mockResolvedValue([mockOrder]),
+    } as never)
+
+    const result = await getOrderAnalytics({
+      data: {
+        merchantId: mockMerchant._id.toString(),
+      },
+    } as any)
+
+    expect(result).not.toBeNull()
+    expect(result?.totalOrders).toBe(1)
+    expect(result?.totalRevenue).toBe(1000)
+    expect(result?.byBrand.Gasul.count).toBe(1)
+  })
+})
+
+describe('updateInventory', () => {
+  it('should update merchant inventory settings', async () => {
+    vi.mocked(MerchantModel.findByIdAndUpdate).mockResolvedValue(mockMerchant as never)
+
+    const result = await updateInventory({
+      data: {
+        merchantId: mockMerchant._id.toString(),
+        tankSizes: ['11kg', '50kg'],
+        brandsAccepted: ['Gasul', 'Petron'],
+      },
+    } as any)
+
+    expect(result).toBe(true)
+    expect(MerchantModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      mockMerchant._id.toString(),
+      expect.objectContaining({
+        $set: expect.objectContaining({
+          tankSizes: ['11kg', '50kg'],
+          brandsAccepted: ['Gasul', 'Petron'],
+        }),
+      }),
+      expect.any(Object)
     )
   })
 })

@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as RiderRouteImport } from './routes/rider'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as MerchantsRouteImport } from './routes/merchants'
 import { Route as IndexRouteImport } from './routes/index'
@@ -24,6 +26,16 @@ const SignUpRoute = SignUpRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RiderRoute = RiderRouteImport.update({
+  id: '/rider',
+  path: '/rider',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrdersRoute = OrdersRouteImport.update({
@@ -51,6 +63,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
   '/orders': typeof OrdersRoute
+  '/profile': typeof ProfileRoute
+  '/rider': typeof RiderRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/order/new': typeof OrderNewRoute
@@ -59,6 +73,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
   '/orders': typeof OrdersRoute
+  '/profile': typeof ProfileRoute
+  '/rider': typeof RiderRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/order/new': typeof OrderNewRoute
@@ -68,6 +84,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
   '/orders': typeof OrdersRoute
+  '/profile': typeof ProfileRoute
+  '/rider': typeof RiderRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/order/new': typeof OrderNewRoute
@@ -78,16 +96,28 @@ export interface FileRouteTypes {
     | '/'
     | '/merchants'
     | '/orders'
+    | '/profile'
+    | '/rider'
     | '/sign-in'
     | '/sign-up'
     | '/order/new'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/merchants' | '/orders' | '/sign-in' | '/sign-up' | '/order/new'
+  to:
+    | '/'
+    | '/merchants'
+    | '/orders'
+    | '/profile'
+    | '/rider'
+    | '/sign-in'
+    | '/sign-up'
+    | '/order/new'
   id:
     | '__root__'
     | '/'
     | '/merchants'
     | '/orders'
+    | '/profile'
+    | '/rider'
     | '/sign-in'
     | '/sign-up'
     | '/order/new'
@@ -97,6 +127,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MerchantsRoute: typeof MerchantsRoute
   OrdersRoute: typeof OrdersRoute
+  ProfileRoute: typeof ProfileRoute
+  RiderRoute: typeof RiderRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   OrderNewRoute: typeof OrderNewRoute
@@ -116,6 +148,20 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rider': {
+      id: '/rider'
+      path: '/rider'
+      fullPath: '/rider'
+      preLoaderRoute: typeof RiderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/orders': {
@@ -153,6 +199,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MerchantsRoute: MerchantsRoute,
   OrdersRoute: OrdersRoute,
+  ProfileRoute: ProfileRoute,
+  RiderRoute: RiderRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   OrderNewRoute: OrderNewRoute,

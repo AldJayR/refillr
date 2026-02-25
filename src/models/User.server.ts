@@ -8,22 +8,22 @@ import { Types } from 'mongoose'
   },
 })
 export class SavedAddress {
-  @prop({ required: true, enum: ['home', 'office', 'other'], default: 'other' })
+  @prop({ required: true, type: () => String, enum: ['home', 'office', 'other'], default: 'other' })
   public label!: 'home' | 'office' | 'other'
 
   @prop({ required: true, type: () => [Number] })
   public coordinates!: [number, number]
 
-  @prop({ required: true })
+  @prop({ required: true, type: () => String })
   public address!: string
 
-  @prop()
+  @prop({ type: () => String })
   public baranggay?: string
 
-  @prop()
+  @prop({ type: () => String })
   public city?: string
 
-  @prop({ default: false })
+  @prop({ default: false, type: () => Boolean })
   public isDefault!: boolean
 }
 
@@ -34,19 +34,19 @@ export class SavedAddress {
   },
 })
 export class User {
-  @prop({ required: true, unique: true })
+  @prop({ required: true, unique: true, type: () => String })
   public clerkId!: string
 
-  @prop({ required: true })
+  @prop({ required: true, type: () => String })
   public email!: string
 
-  @prop()
+  @prop({ type: () => String })
   public firstName?: string
 
-  @prop()
+  @prop({ type: () => String })
   public lastName?: string
 
-  @prop()
+  @prop({ type: () => String })
   public phoneNumber?: string
 
   @prop({ type: () => [SavedAddress], default: [] })
@@ -58,7 +58,7 @@ export class User {
   @prop({ type: () => [String], default: [] })
   public favoriteBrands!: string[]
 
-  @prop({ required: true, enum: ['customer', 'merchant', 'rider', 'admin'], default: 'customer' })
+  @prop({ required: true, type: () => String, enum: ['customer', 'merchant', 'rider', 'admin'], default: 'customer' })
   public role!: 'customer' | 'merchant' | 'rider' | 'admin'
 }
 

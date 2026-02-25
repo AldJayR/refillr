@@ -8,24 +8,18 @@ import {
 } from '@/lib/schemas'
 import { Types } from 'mongoose'
 import { z } from 'zod'
-
-const validator = <T>(schema: z.ZodSchema<T>) => {
-  return (data: unknown): T | undefined => {
-    const result = schema.safeParse(data)
-    if (!result.success) return undefined
-    return result.data
-  }
-}
+import { requireAuthMiddleware } from './middleware'
 
 export const createRefillRequest = createServerFn({ method: 'POST' })
-  .handler(async ({ data }) => {
-    const parsed = validator(CreateOrderSchema)(data)
-    if (!parsed) return null
+  .inputValidator(CreateOrderSchema)
+  .middleware([requireAuthMiddleware])
+  .handler(async ({ data, context }) => {
     await connectToDatabase()
 
     const order = await OrderModel.create({
-      ...parsed,
-      merchantId: new Types.ObjectId(parsed.merchantId),
+      ...data,
+      userId: context.userId,
+      merchantId: new Types.ObjectId(data.merchantId),
       status: 'pending',
     })
 
@@ -33,60 +27,62 @@ export const createRefillRequest = createServerFn({ method: 'POST' })
   })
 
 export const getUserOrders = createServerFn({ method: 'GET' })
-  .handler(async ({ data }) => {
-    const userId = data as string | undefined
-    if (!userId) return []
-
+  .middleware([requireAuthMiddleware])
+  .handler(async ({ context }) => {
     await connectToDatabase()
 
-    const orders = await OrderModel.find({ userId })
+    const orders = await OrderModel.find({ userId: context.userId })
       .sort({ createdAt: -1 })
       .limit(50)
       .lean()
 
     return orders.map(order => ({
       ...order,
-      _id: (order._id as Types.ObjectId).toString(),
-      merchantId: (order.merchantId as Types.ObjectId).toString(),
-      riderId: order.riderId ? (order.riderId as Types.ObjectId).toString() : undefined
+      _id: order._id.toString(),
+      merchantId: order.merchantId.toString(),
+      riderId: order.riderId,
     }))
   })
 
 export const getMerchantOrders = createServerFn({ method: 'GET' })
+  .inputValidator(z.object({ merchantId: z.string() }))
+  .middleware([requireAuthMiddleware])
   .handler(async ({ data }) => {
-    const merchantId = data as string | undefined
-    if (!merchantId) return []
-
     await connectToDatabase()
 
-    const orders = await OrderModel.find({ merchantId: new Types.ObjectId(merchantId) })
+    const orders = await OrderModel.find({ merchantId: new Types.ObjectId(data.merchantId) })
       .sort({ createdAt: -1 })
       .limit(50)
       .lean()
 
     return orders.map(order => ({
       ...order,
-      _id: (order._id as Types.ObjectId).toString(),
-      merchantId: (order.merchantId as Types.ObjectId).toString(),
-      riderId: order.riderId ? (order.riderId as Types.ObjectId).toString() : undefined
+      _id: order._id.toString(),
+      merchantId: order.merchantId.toString(),
+      riderId: order.riderId,
     }))
   })
 
 export const cancelOrder = createServerFn({ method: 'POST' })
-  .handler(async ({ data }) => {
-    const parsed = validator(CancelOrderSchema)(data)
-    if (!parsed) return false
+  .inputValidator(CancelOrderSchema)
+  .middleware([requireAuthMiddleware])
+  .handler(async ({ data, context }) => {
     await connectToDatabase()
 
-    const order = await OrderModel.findById(parsed.orderId)
+    const order = await OrderModel.findById(data.orderId)
     if (!order) return false
+
+    // Security check: ensure the user owns the order
+    if (order.userId !== context.userId) {
+      return false
+    }
 
     if (order.status !== 'pending') {
       return false
     }
 
     order.set('status', 'cancelled')
-    order.set('cancellationReason', parsed.cancellationReason || 'Cancelled by user')
+    order.set('cancellationReason', data.cancellationReason || 'Cancelled by user')
     order.set('cancelledAt', new Date())
     order.set('updatedAt', new Date())
 
@@ -95,21 +91,21 @@ export const cancelOrder = createServerFn({ method: 'POST' })
   })
 
 export const updateOrderStatus = createServerFn({ method: 'POST' })
+  .inputValidator(UpdateOrderStatusSchema)
+  .middleware([requireAuthMiddleware])
   .handler(async ({ data }) => {
-    const parsed = validator(UpdateOrderStatusSchema)(data)
-    if (!parsed) return false
     await connectToDatabase()
 
     const updateFields: Record<string, unknown> = {
-      status: parsed.status,
+      status: data.status,
       updatedAt: new Date()
     }
 
-    if (parsed.riderId) {
-      updateFields.riderId = new Types.ObjectId(parsed.riderId)
+    if (data.riderId) {
+      updateFields.riderId = data.riderId
     }
 
-    switch (parsed.status) {
+    switch (data.status) {
       case 'accepted':
         updateFields.acceptedAt = new Date()
         break
@@ -121,12 +117,12 @@ export const updateOrderStatus = createServerFn({ method: 'POST' })
         break
       case 'cancelled':
         updateFields.cancelledAt = new Date()
-        updateFields.cancellationReason = parsed.cancellationReason
+        updateFields.cancellationReason = data.cancellationReason
         break
     }
 
     const result = await OrderModel.findByIdAndUpdate(
-      parsed.orderId,
+      data.orderId,
       { $set: updateFields },
       { new: true }
     )
@@ -135,20 +131,18 @@ export const updateOrderStatus = createServerFn({ method: 'POST' })
   })
 
 export const getOrderById = createServerFn({ method: 'GET' })
+  .inputValidator(z.object({ orderId: z.string() }))
   .handler(async ({ data }) => {
-    const orderId = data as string | undefined
-    if (!orderId) return null
-
     await connectToDatabase()
 
-    const order = await OrderModel.findById(orderId).lean()
+    const order = await OrderModel.findById(data.orderId).lean()
 
     if (!order) return null
 
     return {
       ...order,
-      _id: (order._id as Types.ObjectId).toString(),
-      merchantId: (order.merchantId as Types.ObjectId).toString(),
-      riderId: order.riderId ? (order.riderId as Types.ObjectId).toString() : undefined
+      _id: order._id.toString(),
+      merchantId: order.merchantId.toString(),
+      riderId: order.riderId,
     }
   })

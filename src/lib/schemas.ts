@@ -35,7 +35,6 @@ export const DeliveryLocationSchema = z.object({
 })
 
 export const CreateOrderSchema = z.object({
-  userId: z.string().min(1),
   merchantId: z.string().regex(objectIdRegex, 'Invalid merchant ID format'),
   tankBrand: z.enum(['Gasul', 'Solane', 'Petron', 'other']),
   tankSize: z.enum(['2.7kg', '5kg', '11kg', '22kg', '50kg']),
@@ -76,4 +75,39 @@ export const UpdateMerchantPricingSchema = z.object({
 
 export const GetMerchantsInPolygonSchema = z.object({
   polygon: z.array(z.array(z.number())).min(3),
+})
+
+// Rider schemas
+export const GetPendingOrdersSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radiusMeters: z.number().int().positive().max(50000).default(10000),
+})
+
+export const AcceptOrderSchema = z.object({
+  orderId: z.string().regex(objectIdRegex, 'Invalid order ID format'),
+})
+
+// Analytics schemas
+export const GetOrderAnalyticsSchema = z.object({
+  merchantId: z.string().regex(objectIdRegex, 'Invalid merchant ID format'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+})
+
+// Inventory schemas
+export const UpdateInventorySchema = z.object({
+  merchantId: z.string().regex(objectIdRegex, 'Invalid merchant ID format'),
+  tankSizes: z.array(z.string()),
+  brandsAccepted: z.array(z.string()),
+})
+
+// User address schemas
+export const SaveAddressSchema = z.object({
+  label: z.enum(['home', 'office', 'other']),
+  coordinates: coordinateSchema,
+  address: z.string().min(1),
+  baranggay: z.string().optional(),
+  city: z.string().optional(),
+  isDefault: z.boolean().default(false),
 })

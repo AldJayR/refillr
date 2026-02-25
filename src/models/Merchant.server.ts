@@ -7,7 +7,7 @@ import { getModelForClass } from '@typegoose/typegoose'
   },
 })
 export class GeoPoint {
-  @prop({ required: true, enum: ['Point'] })
+  @prop({ required: true, type: () => String, enum: ['Point'] })
   public type!: 'Point'
 
   @prop({ required: true, type: () => [Number] })
@@ -21,13 +21,13 @@ export class GeoPoint {
   },
 })
 export class Merchant {
-  @prop({ required: true })
+  @prop({ required: true, type: () => String })
   public shopName!: string
 
-  @prop({ required: true, unique: true })
+  @prop({ required: true, unique: true, type: () => String })
   public doePermitNumber!: string
 
-  @prop({ required: true, index: '2dsphere' })
+  @prop({ required: true, type: () => GeoPoint, index: '2dsphere' })
   public location!: GeoPoint
 
   @prop({ type: () => [String], default: [] })
@@ -36,31 +36,31 @@ export class Merchant {
   @prop({ type: () => Object, default: {} })
   public pricing!: Record<string, number>
 
-  @prop()
+  @prop({ type: () => Object })
   public deliveryPolygon?: GeoJSON.Polygon
 
-  @prop({ default: true })
+  @prop({ default: true, type: () => Boolean })
   public isOpen!: boolean
 
-  @prop({ default: false })
+  @prop({ default: false, type: () => Boolean })
   public isVerified!: boolean
 
-  @prop()
+  @prop({ type: () => String })
   public phoneNumber?: string
 
-  @prop()
+  @prop({ type: () => String })
   public address?: string
 
-  @prop()
+  @prop({ type: () => String })
   public baranggay?: string
 
-  @prop()
+  @prop({ type: () => String })
   public city?: string
 
   @prop({ type: () => [String], default: [] })
   public tankSizes!: string[]
 
-  @prop({ default: 5000 })
+  @prop({ default: 5000, type: () => Number })
   public deliveryRadiusMeters!: number
 }
 

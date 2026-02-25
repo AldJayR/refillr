@@ -1,50 +1,14 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Link } from '@tanstack/react-router'
-import {
-  ArrowLeft,
-  Package,
-  Clock
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { getUserOrders } from '@/server/orders.functions'
+import { useEffect, useState } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, Clock, Package } from 'lucide-react'
 
 export const Route = createFileRoute('/orders')({
   component: OrderHistory,
 })
 
-interface Order {
-  id: string
-  merchantName: string
-  tankBrand: string
-  tankSize: string
-  quantity: number
-  totalPrice: number
-  status: 'pending' | 'accepted' | 'dispatched' | 'delivered' | 'cancelled'
-  createdAt: string
-}
-
-const DEMO_ORDERS: Order[] = [
-  {
-    id: '1',
-    merchantName: 'Gasul Center Manila',
-    tankBrand: 'Gasul',
-    tankSize: '11kg',
-    quantity: 1,
-    totalPrice: 1200,
-    status: 'delivered',
-    createdAt: '2024-01-15 14:30'
-  },
-  {
-    id: '2',
-    merchantName: 'Solane Depot QC',
-    tankBrand: 'Solane',
-    tankSize: '5kg',
-    quantity: 2,
-    totalPrice: 1200,
-    status: 'pending',
-    createdAt: '2024-01-20 09:15'
-  }
-]
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-500/20 text-yellow-400',
@@ -55,8 +19,30 @@ const STATUS_COLORS = {
 }
 
 function OrderHistory() {
-  const pendingOrders = DEMO_ORDERS.filter(o => o.status === 'pending')
-  const completedOrders = DEMO_ORDERS.filter(o => o.status !== 'pending')
+  const [orders, setOrders] = useState<any[]>([])
+  const [_loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const result = await getUserOrders()
+        setOrders(result)
+      } catch {
+        console.error('Failed to fetch orders')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchOrders()
+  }, [])
+
+  const pendingOrders = orders.filter(o => o.status === 'pending')
+  const completedOrders = orders.filter(o => o.status !== 'pending')
+
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr)
+    return date.toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 p-4">
@@ -76,19 +62,19 @@ function OrderHistory() {
             <div className="space-y-3">
               {pendingOrders.map((order) => (
                 <div
-                  key={order.id}
-                  className="bg-slate-900 border border-slate-800 rounded-xl p-4"
+                  key={order._id}
+                  className="glass-card rounded-xl p-5 hover-scale animate-fade-in group"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-white">{order.merchantName}</h3>
+                      <h3 className="font-semibold text-white">Refill Order</h3>
                       <p className="text-sm text-slate-400">
                         {order.tankBrand} {order.tankSize} x{order.quantity}
                       </p>
                     </div>
                     <span className={cn(
                       "px-2 py-1 rounded-full text-xs font-medium capitalize",
-                      STATUS_COLORS[order.status]
+                      STATUS_COLORS[order.status as keyof typeof STATUS_COLORS]
                     )}>
                       {order.status}
                     </span>
@@ -97,7 +83,7 @@ function OrderHistory() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-slate-400">
                       <Clock size={14} />
-                      {order.createdAt}
+                      {order.createdAt ? formatTime(order.createdAt) : 'Just now'}
                     </div>
                     <span className="text-orange-500 font-semibold">₱{order.totalPrice}</span>
                   </div>
@@ -113,19 +99,19 @@ function OrderHistory() {
             <div className="space-y-3">
               {completedOrders.map((order) => (
                 <div
-                  key={order.id}
-                  className="bg-slate-900 border border-slate-800 rounded-xl p-4 opacity-75"
+                  key={order._id}
+                  className="glass-card rounded-xl p-5 opacity-75 hover-scale animate-fade-in"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-white">{order.merchantName}</h3>
+                      <h3 className="font-semibold text-white">Refill Order</h3>
                       <p className="text-sm text-slate-400">
                         {order.tankBrand} {order.tankSize} x{order.quantity}
                       </p>
                     </div>
                     <span className={cn(
                       "px-2 py-1 rounded-full text-xs font-medium capitalize",
-                      STATUS_COLORS[order.status]
+                      STATUS_COLORS[order.status as keyof typeof STATUS_COLORS]
                     )}>
                       {order.status}
                     </span>
@@ -134,7 +120,7 @@ function OrderHistory() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-slate-400">
                       <Clock size={14} />
-                      {order.createdAt}
+                      {order.createdAt ? formatTime(order.createdAt) : 'Completed'}
                     </div>
                     <span className="text-orange-500 font-semibold">₱{order.totalPrice}</span>
                   </div>

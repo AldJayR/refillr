@@ -1,38 +1,26 @@
 import { createServerFn } from '@tanstack/react-start'
 import { connectToDatabase } from '@/lib/db.server'
 import { MerchantModel } from '@/models/Merchant.server'
-import { 
-  GetNearbyMerchantsSchema, 
+import {
+  GetNearbyMerchantsSchema,
   GetMerchantByIdSchema,
   MerchantSchema,
   UpdateMerchantPricingSchema,
-  GetMerchantsInPolygonSchema 
+  GetMerchantsInPolygonSchema,
+  GetOrderAnalyticsSchema,
+  UpdateInventorySchema
 } from '@/lib/schemas'
 import { Types } from 'mongoose'
-import { z } from 'zod'
-
-const validator = <T>(schema: z.ZodSchema<T>, allowOptional = false) => {
-  return (data: unknown): T | undefined => {
-    if (allowOptional && (data === undefined || data === null)) {
-      return undefined
-    }
-    const result = schema.safeParse(data)
-    if (!result.success) {
-      return undefined
-    }
-    return result.data
-  }
-}
+import { OrderModel } from '@/models/Order.server'
+import { requireAuthMiddleware } from './middleware'
 
 export const getNearbyMerchants = createServerFn({ method: 'GET' })
+  .inputValidator(GetNearbyMerchantsSchema)
   .handler(async ({ data }) => {
-    const parsed = validator(GetNearbyMerchantsSchema)(data)
-    if (!parsed) return []
-    
     await connectToDatabase()
-    
-    const { latitude, longitude, radiusMeters, brand } = parsed
-    
+
+    const { latitude, longitude, radiusMeters, brand } = data
+
     const query: Record<string, unknown> = {
       location: {
         $nearSphere: {
@@ -53,52 +41,49 @@ export const getNearbyMerchants = createServerFn({ method: 'GET' })
 
     return merchants.map(merchant => ({
       ...merchant,
-      _id: (merchant._id as Types.ObjectId).toString()
+      _id: merchant._id.toString(),
     }))
   })
 
 export const getMerchantById = createServerFn({ method: 'GET' })
+  .inputValidator(GetMerchantByIdSchema)
   .handler(async ({ data }) => {
-    const parsed = validator(GetMerchantByIdSchema, true)(data)
-    if (!parsed) return null
-    
+    if (!data?.merchantId) return null
     await connectToDatabase()
-    
-    const merchant = await MerchantModel.findById(parsed.merchantId).lean()
-    
+
+    const merchant = await MerchantModel.findById(data.merchantId).lean()
+
     if (!merchant) return null
 
     return {
       ...merchant,
-      _id: (merchant._id as Types.ObjectId).toString()
+      _id: merchant._id.toString(),
     }
   })
 
 export const createMerchant = createServerFn({ method: 'POST' })
+  .inputValidator(MerchantSchema)
+  .middleware([requireAuthMiddleware])
   .handler(async ({ data }) => {
-    const parsed = validator(MerchantSchema)(data)
-    if (!parsed) return null
-    
     await connectToDatabase()
-    
-    const merchant = await MerchantModel.create(parsed)
+
+    const merchant = await MerchantModel.create(data)
     return merchant._id.toString()
   })
 
 export const updateMerchantPricing = createServerFn({ method: 'POST' })
+  .inputValidator(UpdateMerchantPricingSchema)
+  .middleware([requireAuthMiddleware])
   .handler(async ({ data }) => {
-    const parsed = validator(UpdateMerchantPricingSchema)(data)
-    if (!parsed) return false
-    
     await connectToDatabase()
-    
+
     const result = await MerchantModel.findByIdAndUpdate(
-      parsed.merchantId,
-      { 
-        $set: { 
-          pricing: parsed.pricing,
+      data.merchantId,
+      {
+        $set: {
+          pricing: data.pricing,
           updatedAt: new Date()
-        } 
+        }
       },
       { new: true }
     )
@@ -107,13 +92,11 @@ export const updateMerchantPricing = createServerFn({ method: 'POST' })
   })
 
 export const getMerchantsInPolygon = createServerFn({ method: 'GET' })
+  .inputValidator(GetMerchantsInPolygonSchema)
   .handler(async ({ data }) => {
-    const parsed = validator(GetMerchantsInPolygonSchema)(data)
-    if (!parsed) return []
-    
     await connectToDatabase()
-    
-    const { polygon } = parsed
+
+    const { polygon } = data
     const coordinates = polygon[0]
 
     const merchants = await MerchantModel.find({
@@ -126,6 +109,86 @@ export const getMerchantsInPolygon = createServerFn({ method: 'GET' })
 
     return merchants.map(merchant => ({
       ...merchant,
-      _id: (merchant._id as Types.ObjectId).toString()
+      _id: merchant._id.toString(),
     }))
+  })
+
+/**
+ * Get order analytics for a specific merchant.
+ * Returns total orders, revenue, and breakdown by brand/size.
+ */
+export const getOrderAnalytics = createServerFn({ method: 'GET' })
+  .inputValidator(GetOrderAnalyticsSchema)
+  .middleware([requireAuthMiddleware])
+  .handler(async ({ data }) => {
+    await connectToDatabase()
+
+    const query: Record<string, unknown> = {
+      merchantId: new Types.ObjectId(data.merchantId),
+    }
+
+    if (data.startDate || data.endDate) {
+      const dateFilter: Record<string, Date> = {}
+      if (data.startDate) dateFilter.$gte = new Date(data.startDate)
+      if (data.endDate) dateFilter.$lte = new Date(data.endDate)
+      query.createdAt = dateFilter
+    }
+
+    const orders = await OrderModel.find(query).lean()
+
+    const totalOrders = orders.length
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+    const deliveredOrders = orders.filter(o => o.status === 'delivered').length
+    const cancelledOrders = orders.filter(o => o.status === 'cancelled').length
+
+    // Breakdown by brand
+    const byBrand: Record<string, { count: number; revenue: number }> = {}
+    for (const order of orders) {
+      const brand = order.tankBrand || 'unknown'
+      if (!byBrand[brand]) byBrand[brand] = { count: 0, revenue: 0 }
+      byBrand[brand].count++
+      byBrand[brand].revenue += order.totalPrice || 0
+    }
+
+    // Breakdown by size
+    const bySize: Record<string, { count: number; revenue: number }> = {}
+    for (const order of orders) {
+      const size = order.tankSize || 'unknown'
+      if (!bySize[size]) bySize[size] = { count: 0, revenue: 0 }
+      bySize[size].count++
+      bySize[size].revenue += order.totalPrice || 0
+    }
+
+    return {
+      totalOrders,
+      totalRevenue,
+      deliveredOrders,
+      cancelledOrders,
+      byBrand,
+      bySize,
+    }
+  })
+
+/**
+ * Update merchant inventory (available tank sizes and brands).
+ */
+export const updateInventory = createServerFn({ method: 'POST' })
+  .inputValidator(UpdateInventorySchema)
+  .middleware([requireAuthMiddleware])
+  .handler(async ({ data }) => {
+    await connectToDatabase()
+
+    const result = await MerchantModel.findByIdAndUpdate(
+      data.merchantId,
+      {
+        $set: {
+          tankSizes: data.tankSizes,
+          brandsAccepted: data.brandsAccepted,
+          updatedAt: new Date(),
+        }
+      },
+      { new: true }
+    )
+
+    return result !== null
   })

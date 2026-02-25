@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { 
-  Flame, 
-  MapPin, 
-  Clock, 
+import {
+  Flame,
+  MapPin,
+  Clock,
   Phone,
   Plus,
   ArrowRight
@@ -14,39 +14,69 @@ import CommandMenu from '@/components/CommandMenu'
 import TrustBadge from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { getNearbyMerchants } from '@/server/merchants.functions'
+import { useEffect, useCallback } from 'react'
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
 })
 
-interface MerchantMarker {
-  id: string
-  coordinates: [number, number]
-  shopName: string
-  isVerified: boolean
-  isOpen: boolean
-}
-
-const DEMO_MERCHANTS: MerchantMarker[] = [
-  { id: '1', coordinates: [120.9842, 14.5995], shopName: 'Gasul Center Manila', isVerified: true, isOpen: true },
-  { id: '2', coordinates: [120.9860, 14.5980], shopName: 'Solane Depot QC', isVerified: true, isOpen: true },
-  { id: '3', coordinates: [120.9820, 14.6010], shopName: 'Petron Gas Station', isVerified: false, isOpen: false },
-]
 
 function Dashboard() {
   const [selectedMerchant, setSelectedMerchant] = useState<string | null>(null)
+  const [merchants, setMerchants] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [userCoords, setUserCoords] = useState<[number, number]>([120.9842, 14.5995])
+
+  const fetchMerchants = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await getNearbyMerchants({
+        data: {
+          latitude: userCoords[1],
+          longitude: userCoords[0],
+          radiusMeters: 5000,
+        }
+      })
+      setMerchants(result)
+    } catch {
+      console.error('Failed to fetch merchants')
+    } finally {
+      setLoading(false)
+    }
+  }, [userCoords])
+
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setUserCoords([pos.coords.longitude, pos.coords.latitude])
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchMerchants()
+  }, [fetchMerchants])
+
+  const mapMarkers = merchants.map(m => ({
+    id: m._id,
+    coordinates: m.location.coordinates,
+    shopName: m.shopName,
+    isVerified: m.isVerified,
+    isOpen: m.isOpen
+  }))
 
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="relative h-[60vh]">
-        <Map 
-          markers={DEMO_MERCHANTS}
+        <Map
+          markers={mapMarkers}
           onMarkerClick={(id) => setSelectedMerchant(id)}
         />
-        
+
         <div className="absolute top-4 left-4 right-4 z-10">
           <div className="max-w-md mx-auto">
-            <CommandMenu 
+            <CommandMenu
               onSelect={(result) => console.log('Selected:', result)}
             />
           </div>
@@ -57,7 +87,7 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Flame className="text-orange-500" size={20} />
-                <span className="text-white font-semibold">Refillr</span>
+                <span className="text-white font-bold font-heading">Refillr</span>
               </div>
               <Link to="/order/new">
                 <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
@@ -79,14 +109,18 @@ function Dashboard() {
         </div>
 
         <div className="grid gap-3">
-          {DEMO_MERCHANTS.map((merchant) => (
+          {loading ? (
+            <div className="text-center py-8 text-slate-500">Finding nearby dealers...</div>
+          ) : merchants.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">No dealers found in your area.</div>
+          ) : merchants.map((merchant) => (
             <div
-              key={merchant.id}
+              key={merchant._id}
               className={cn(
-                "bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-orange-500/50 transition-colors cursor-pointer",
-                selectedMerchant === merchant.id && "border-orange-500"
+                "glass-card rounded-xl p-4 hover-scale cursor-pointer group",
+                selectedMerchant === merchant._id ? "border-orange-500 ring-1 ring-orange-500/50" : "border-slate-800"
               )}
-              onClick={() => setSelectedMerchant(merchant.id)}
+              onClick={() => setSelectedMerchant(merchant._id)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -104,7 +138,7 @@ function Dashboard() {
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin size={14} />
-                      1.2 km away
+                      Nearby
                     </span>
                   </div>
                 </div>
@@ -112,10 +146,10 @@ function Dashboard() {
                   <Phone size={14} />
                 </Button>
               </div>
-              
+
               <div className="mt-3 flex flex-wrap gap-2">
-                {['Gasul', 'Solane', 'Petron'].map((brand) => (
-                  <span 
+                {merchant.brandsAccepted?.map((brand: string) => (
+                  <span
                     key={brand}
                     className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300"
                   >
@@ -127,9 +161,12 @@ function Dashboard() {
           ))}
         </div>
 
-        <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-xl p-4 border border-orange-500/30">
-          <h3 className="font-semibold text-white mb-2">Safety First</h3>
-          <p className="text-sm text-slate-300">
+        <div className="glass-card bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl p-4 border-orange-500/20">
+          <h3 className="font-bold font-heading text-white mb-2 flex items-center gap-2">
+            <TrustBadge isVerified={true} />
+            Safety First
+          </h3>
+          <p className="text-sm text-slate-400">
             Look for the <span className="text-green-400 font-medium">DOE Verified</span> badge to ensure you're getting safe, properly maintained gas tanks.
           </p>
         </div>

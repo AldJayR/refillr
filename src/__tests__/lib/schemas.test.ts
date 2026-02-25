@@ -123,7 +123,6 @@ describe('DeliveryLocationSchema', () => {
 
 describe('CreateOrderSchema', () => {
   const validOrder = {
-    userId: 'user_123',
     merchantId: '507f1f77bcf86cd799439011',
     tankBrand: 'Gasul' as const,
     tankSize: '11kg' as const,
@@ -139,14 +138,6 @@ describe('CreateOrderSchema', () => {
   it('validates valid order data', () => {
     const result = CreateOrderSchema.safeParse(validOrder)
     expect(result.success).toBe(true)
-  })
-
-  it('rejects empty userId', () => {
-    const result = CreateOrderSchema.safeParse({
-      ...validOrder,
-      userId: '',
-    })
-    expect(result.success).toBe(false)
   })
 
   it('rejects invalid merchantId', () => {

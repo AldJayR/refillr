@@ -12,7 +12,7 @@ export type TankSize = '2.7kg' | '5kg' | '11kg' | '22kg' | '50kg'
   },
 })
 export class DeliveryLocation {
-  @prop({ required: true, enum: ['Point'] })
+  @prop({ required: true, type: () => String, enum: ['Point'] })
   public type!: 'Point'
 
   @prop({ required: true, type: () => [Number] })
@@ -26,52 +26,52 @@ export class DeliveryLocation {
   },
 })
 export class Order {
-  @prop({ required: true })
+  @prop({ required: true, type: () => String })
   public userId!: string
 
   @prop({ required: true, type: Types.ObjectId, ref: 'Merchant' })
   public merchantId!: Types.ObjectId
 
-  @prop({ type: Types.ObjectId, ref: 'User' })
-  public riderId?: Types.ObjectId
+  @prop({ type: () => String })
+  public riderId?: string
 
-  @prop({ required: true, enum: ['Gasul', 'Solane', 'Petron', 'other'] })
+  @prop({ required: true, type: () => String, enum: ['Gasul', 'Solane', 'Petron', 'other'] })
   public tankBrand!: TankBrand
 
-  @prop({ required: true, enum: ['2.7kg', '5kg', '11kg', '22kg', '50kg'] })
+  @prop({ required: true, type: () => String, enum: ['2.7kg', '5kg', '11kg', '22kg', '50kg'] })
   public tankSize!: TankSize
 
-  @prop({ default: 1 })
+  @prop({ default: 1, type: () => Number })
   public quantity!: number
 
-  @prop({ required: true })
+  @prop({ required: true, type: () => Number })
   public totalPrice!: number
 
-  @prop({ required: true, enum: ['pending', 'accepted', 'dispatched', 'in_transit', 'delivered', 'cancelled'], default: 'pending' })
+  @prop({ required: true, type: () => String, enum: ['pending', 'accepted', 'dispatched', 'in_transit', 'delivered', 'cancelled'], default: 'pending' })
   public status!: OrderStatus
 
   @prop({ required: true, type: () => DeliveryLocation })
   public deliveryLocation!: DeliveryLocation
 
-  @prop({ required: true })
+  @prop({ required: true, type: () => String })
   public deliveryAddress!: string
 
-  @prop()
+  @prop({ type: () => String })
   public notes?: string
 
-  @prop()
+  @prop({ type: () => Date })
   public acceptedAt?: Date
 
-  @prop()
+  @prop({ type: () => Date })
   public dispatchedAt?: Date
 
-  @prop()
+  @prop({ type: () => Date })
   public deliveredAt?: Date
 
-  @prop()
+  @prop({ type: () => Date })
   public cancelledAt?: Date
 
-  @prop()
+  @prop({ type: () => String })
   public cancellationReason?: string
 }
 

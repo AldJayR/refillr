@@ -1,39 +1,52 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Link } from '@tanstack/react-router'
-import {
-  ArrowLeft,
-  MapPin,
-  Clock,
-  Phone,
-  Filter
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import TrustBadge from '@/components/TrustBadge'
+import { getNearbyMerchants } from '@/server/merchants.functions'
+import { useEffect, useState, useCallback } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, Clock, MapPin, Filter, Phone } from 'lucide-react'
 
 export const Route = createFileRoute('/merchants')({
   component: MerchantsList,
 })
 
-interface Merchant {
-  id: string
-  name: string
-  address: string
-  isVerified: boolean
-  isOpen: boolean
-  brands: string[]
-  distance: string
-}
-
-const DEMO_MERCHANTS: Merchant[] = [
-  { id: '1', name: 'Gasul Center Manila', address: '123 Taft Ave, Manila', isVerified: true, isOpen: true, brands: ['Gasul', 'Solane'], distance: '1.2 km' },
-  { id: '2', name: 'Solane Depot QC', address: '456 Quezon Ave, QC', isVerified: true, isOpen: true, brands: ['Solane'], distance: '2.5 km' },
-  { id: '3', name: 'Petron Gas Station', address: '789 EDSA, Makati', isVerified: false, isOpen: false, brands: ['Petron'], distance: '3.1 km' },
-  { id: '4', name: 'LPG Express', address: '321 Roxas Blvd, Manila', isVerified: true, isOpen: true, brands: ['Gasul', 'Petron', 'Solane'], distance: '4.0 km' },
-]
 
 function MerchantsList() {
-  const openMerchants = DEMO_MERCHANTS.filter(m => m.isOpen)
-  const closedMerchants = DEMO_MERCHANTS.filter(m => !m.isOpen)
+  const [merchants, setMerchants] = useState<any[]>([])
+  const [_loading, setLoading] = useState(true)
+  const [userCoords, setUserCoords] = useState<[number, number]>([120.9842, 14.5995])
+
+  const fetchMerchants = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result = await getNearbyMerchants({
+        data: {
+          latitude: userCoords[1],
+          longitude: userCoords[0],
+          radiusMeters: 10000,
+        }
+      })
+      setMerchants(result)
+    } catch {
+      console.error('Failed to fetch merchants')
+    } finally {
+      setLoading(false)
+    }
+  }, [userCoords])
+
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setUserCoords([pos.coords.longitude, pos.coords.latitude])
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchMerchants()
+  }, [fetchMerchants])
+
+  const openMerchants = merchants.filter(m => m.isOpen)
+  const closedMerchants = merchants.filter(m => !m.isOpen)
 
   return (
     <div className="min-h-screen bg-slate-950 p-4">
@@ -61,16 +74,16 @@ function MerchantsList() {
               <div className="space-y-3">
                 {openMerchants.map((merchant) => (
                   <div
-                    key={merchant.id}
-                    className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-orange-500/50 transition-colors"
+                    key={merchant._id}
+                    className="glass-card rounded-xl p-5 hover-scale animate-fade-in group cursor-pointer"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-white">{merchant.name}</h3>
+                          <h3 className="font-semibold text-white">{merchant.shopName}</h3>
                           <TrustBadge isVerified={merchant.isVerified} />
                         </div>
-                        <p className="text-sm text-slate-400 mt-1">{merchant.address}</p>
+                        <p className="text-sm text-slate-400 mt-1">{merchant.address || 'Address not listed'}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
                           <span className="flex items-center gap-1 text-green-400">
                             <Clock size={14} />
@@ -78,7 +91,7 @@ function MerchantsList() {
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin size={14} />
-                            {merchant.distance}
+                            Nearby
                           </span>
                         </div>
                       </div>
@@ -87,7 +100,7 @@ function MerchantsList() {
                       </Button>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {merchant.brands.map((brand) => (
+                      {merchant.brandsAccepted?.map((brand: string) => (
                         <span
                           key={brand}
                           className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300"
@@ -110,16 +123,16 @@ function MerchantsList() {
               <div className="space-y-3 opacity-60">
                 {closedMerchants.map((merchant) => (
                   <div
-                    key={merchant.id}
-                    className="bg-slate-900 border border-slate-800 rounded-xl p-4"
+                    key={merchant._id}
+                    className="glass-card rounded-xl p-5 opacity-60 hover-scale animate-fade-in"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-white">{merchant.name}</h3>
+                          <h3 className="font-semibold text-white">{merchant.shopName}</h3>
                           <TrustBadge isVerified={merchant.isVerified} />
                         </div>
-                        <p className="text-sm text-slate-400 mt-1">{merchant.address}</p>
+                        <p className="text-sm text-slate-400 mt-1">{merchant.address || 'Address not listed'}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
                           <span className="flex items-center gap-1 text-red-400">
                             <Clock size={14} />
@@ -127,13 +140,13 @@ function MerchantsList() {
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin size={14} />
-                            {merchant.distance}
+                            Nearby
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {merchant.brands.map((brand) => (
+                      {merchant.brandsAccepted?.map((brand: string) => (
                         <span
                           key={brand}
                           className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300"

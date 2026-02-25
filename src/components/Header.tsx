@@ -8,38 +8,42 @@ import {
 } from '@clerk/tanstack-react-start'
 
 import { useState } from 'react'
-import { Home, Menu, X } from 'lucide-react'
+import { Home, Menu, X, Truck, User, ShoppingBag, ListChecks, Flame } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
     <>
-      <header className="p-4 flex items-center bg-slate-900 text-white shadow-lg border-b border-slate-800">
+      <header className="p-4 flex items-center glass-card text-white shadow-lg sticky top-0 z-40">
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+          className="p-2 hover:bg-slate-800/50 rounded-lg transition-colors hover-scale"
           aria-label="Open menu"
         >
           <Menu size={24} />
         </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <span className="text-orange-500">Refillr</span>
+        <h1 className="ml-4 text-xl font-bold font-heading flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
+            <Flame className="text-orange-500" size={20} />
+            <span className="text-gradient">Refillr</span>
           </Link>
         </h1>
         <div className="ml-auto flex items-center gap-4">
           <SignedIn>
-            <UserButton afterSignOutUrl="/" />
+            <div className="hover-scale">
+              <UserButton afterSignOutUrl="/" />
+            </div>
           </SignedIn>
           <SignedOut>
-            <SignInButton mode="modal">
+            <SignInButton mode="modal" signUpFallbackRedirectUrl="/" fallbackRedirectUrl="/">
               <button className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
                 Sign In
               </button>
             </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-4 py-2 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors">
+            <SignUpButton mode="modal" signInFallbackRedirectUrl="/" fallbackRedirectUrl="/">
+              <button className="px-4 py-2 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all glow-orange hover-scale">
                 Sign Up
               </button>
             </SignUpButton>
@@ -47,40 +51,100 @@ export default function Header() {
         </div>
       </header>
 
+      {/* Sidebar Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
       <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-slate-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={cn(
+          "fixed top-0 left-0 h-full w-80 glass-sidebar text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col",
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        )}
       >
-        <div className="flex items-center justify-between p-4 border-b border-slate-800">
-          <h2 className="text-xl font-bold">Navigation</h2>
+        <div className="flex items-center justify-between p-6 border-b border-slate-800/50">
+          <h2 className="text-xl font-bold font-heading text-gradient">Refillr Menu</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-slate-800/50 rounded-lg transition-colors hover-scale"
             aria-label="Close menu"
           >
             <X size={24} />
           </button>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="flex-1 p-4 overflow-y-auto space-y-2">
           <Link
             to="/"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors mb-2"
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
             activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-orange-600 hover:bg-orange-700 transition-colors mb-2',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
             }}
           >
             <Home size={20} />
-            <span className="font-medium">Home</span>
+            <span>Home</span>
           </Link>
 
-          {/* Demo Links Start */}
+          <Link
+            to="/merchants"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+            activeProps={{
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+            }}
+          >
+            <ShoppingBag size={20} />
+            <span>Nearby Dealers</span>
+          </Link>
 
-          {/* Demo Links End */}
+          <Link
+            to="/orders"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+            activeProps={{
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+            }}
+          >
+            <ListChecks size={20} />
+            <span>Order History</span>
+          </Link>
+
+          <Link
+            to="/profile"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+            activeProps={{
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+            }}
+          >
+            <User size={20} />
+            <span>My Profile</span>
+          </Link>
+
+          <div className="pt-4 mt-4 border-t border-slate-800/50">
+            <Link
+              to="/rider"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+              activeProps={{
+                className: 'flex items-center gap-3 p-3 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20 text-white font-semibold transform scale-[1.02]',
+              }}
+            >
+              <Truck size={20} />
+              <span>Rider Workspace</span>
+            </Link>
+          </div>
         </nav>
+
+        <div className="p-6 border-t border-slate-800/50">
+          <p className="text-xs text-slate-500 text-center">
+            Refillr v1.0.0 • Verified LPG Delivery
+          </p>
+        </div>
       </aside>
     </>
   )
