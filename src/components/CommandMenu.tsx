@@ -1,6 +1,14 @@
-import { useState, useEffect } from 'react'
-import { Search, Flame, Package, MapPin } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Flame, Package, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 
 export interface SearchResult {
   id: string
@@ -27,83 +35,115 @@ const POPULAR_SEARCHES: SearchResult[] = [
   { id: '6', type: 'size', label: '22kg', sublabel: 'Commercial', sizeLabel: '22kg' },
 ]
 
-export default function CommandMenu({
-  onSelect,
-  className
-}: CommandMenuProps) {
-  const [query, setQuery] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [results, setResults] = useState<SearchResult[]>(POPULAR_SEARCHES)
+const RESULT_ICONS = {
+  brand: <Flame className="text-orange-500 size-4" />,
+  size: <Package className="text-blue-400 size-4" />,
+  location: <MapPin className="text-green-400 size-4" />,
+} as const
 
+export default function CommandMenu({ onSelect, className }: CommandMenuProps) {
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  // ⌘K / Ctrl+K shortcut to open the dialog
   useEffect(() => {
-    if (!query.trim()) {
-      setResults(POPULAR_SEARCHES)
-      return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setDialogOpen((prev) => !prev)
+      }
     }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [])
 
-    const filtered = POPULAR_SEARCHES.filter(item =>
-      item.label.toLowerCase().includes(query.toLowerCase())
-    )
-    setResults(filtered)
-  }, [query])
+  const handleSelect = useCallback(
+    (value: string) => {
+      const result = POPULAR_SEARCHES.find(
+        (r) => r.id === value,
+      )
+      if (result) {
+        onSelect?.(result)
+        setDialogOpen(false)
+      }
+    },
+    [onSelect],
+  )
 
-  const handleSelect = (result: SearchResult) => {
-    onSelect?.(result)
-    setQuery('')
-    setIsOpen(false)
-  }
+  const brandResults = POPULAR_SEARCHES.filter((r) => r.type === 'brand')
+  const sizeResults = POPULAR_SEARCHES.filter((r) => r.type === 'size')
+
+  const listContent = (
+    <>
+      <CommandEmpty>No results found.</CommandEmpty>
+      <CommandGroup heading="Brands">
+        {brandResults.map((result) => (
+          <CommandItem
+            key={result.id}
+            value={result.id}
+            keywords={[result.label, result.brandName ?? '', result.sizeLabel ?? '']}
+            onSelect={handleSelect}
+          >
+            {RESULT_ICONS[result.type]}
+            <div className="flex flex-col">
+              <span>{result.label}</span>
+              {result.sublabel && (
+                <span className="text-xs text-muted-foreground">
+                  {result.sublabel}
+                </span>
+              )}
+            </div>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+      <CommandGroup heading="Sizes">
+        {sizeResults.map((result) => (
+          <CommandItem
+            key={result.id}
+            value={result.id}
+            keywords={[result.label, result.sizeLabel ?? '']}
+            onSelect={handleSelect}
+          >
+            {RESULT_ICONS[result.type]}
+            <div className="flex flex-col">
+              <span>{result.label}</span>
+              {result.sublabel && (
+                <span className="text-xs text-muted-foreground">
+                  {result.sublabel}
+                </span>
+              )}
+            </div>
+          </CommandItem>
+        ))}
+      </CommandGroup>
+    </>
+  )
 
   return (
-    <div className={cn("relative", className)}>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsOpen(true)}
-          placeholder="Search 'Gasul 11kg' or 'Solane 2.7kg'..."
-          className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-        />
-        <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-slate-600 bg-slate-700 px-1.5 font-mono text-[10px] font-medium text-slate-400">
+    <div className={cn('relative', className)}>
+      {/* Inline trigger — looks like a search bar */}
+      <button
+        type="button"
+        onClick={() => setDialogOpen(true)}
+        className="w-full flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-400 hover:bg-slate-700 transition-colors"
+      >
+        <span className="flex-1 text-left">
+          Search &lsquo;Gasul 11kg&rsquo; or &lsquo;Solane 2.7kg&rsquo;…
+        </span>
+        <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-slate-600 bg-slate-700 px-1.5 font-mono text-[10px] font-medium text-slate-400">
           <span className="text-xs">⌘</span>K
         </kbd>
-      </div>
+      </button>
 
-      {isOpen && results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
-          <div className="p-2">
-            <p className="text-xs text-slate-400 px-2 py-1">
-              {query ? 'Results' : 'Popular searches'}
-            </p>
-          </div>
-          <div className="max-h-64 overflow-y-auto">
-            {results.map((result) => (
-              <button
-                key={result.id}
-                onClick={() => handleSelect(result)}
-                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700 transition-colors text-left"
-              >
-                {result.type === 'brand' && <Flame className="text-orange-500" size={16} />}
-                {result.type === 'size' && <Package className="text-blue-400" size={16} />}
-                {result.type === 'location' && <MapPin className="text-green-400" size={16} />}
-                <div>
-                  <p className="text-white font-medium">{result.label}</p>
-                  {result.sublabel && (
-                    <p className="text-xs text-slate-400">{result.sublabel}</p>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isOpen && query && results.length === 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-50 p-4 text-center">
-          <p className="text-slate-400">No results found for "{query}"</p>
-        </div>
-      )}
+      {/* Full command dialog — opened via click or ⌘K */}
+      <CommandDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title="Search LPG"
+        description="Search for brands, sizes, or locations"
+      >
+        <CommandInput placeholder="Search brands, sizes, locations…" />
+        <CommandList>{listContent}</CommandList>
+      </CommandDialog>
     </div>
   )
 }
