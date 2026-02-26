@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock, Package, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
+type UserOrder = Awaited<ReturnType<typeof getUserOrders>>[number]
+
 export const Route = createFileRoute('/_authenticated/orders')({
     loader: () => getUserOrders(),
     component: OrderHistory,
@@ -21,18 +23,18 @@ const STATUS_COLORS = {
 
 function OrderHistory() {
     const initialOrders = Route.useLoaderData()
-    const [orders, setOrders] = useState(initialOrders)
+    const [orders, setOrders] = useState<UserOrder[]>(initialOrders)
     const [cancellingId, setCancellingId] = useState<string | null>(null)
 
-    const pendingOrders = orders.filter((o: any) => o.status === 'pending')
-    const activeOrders = orders.filter((o: any) => o.status === 'accepted' || o.status === 'dispatched')
-    const completedOrders = orders.filter((o: any) => o.status === 'delivered' || o.status === 'cancelled')
+    const pendingOrders = orders.filter((o: UserOrder) => o.status === 'pending')
+    const activeOrders = orders.filter((o: UserOrder) => o.status === 'accepted' || o.status === 'dispatched')
+    const completedOrders = orders.filter((o: UserOrder) => o.status === 'delivered' || o.status === 'cancelled')
 
     const handleCancel = async (orderId: string) => {
         setCancellingId(orderId)
         // Optimistic: move to cancelled immediately
         setOrders(prev =>
-            prev.map((o: any) => o._id === orderId ? { ...o, status: 'cancelled' } : o)
+            prev.map((o: UserOrder) => o._id === orderId ? { ...o, status: 'cancelled' } : o)
         )
 
         try {
@@ -47,14 +49,14 @@ function OrderHistory() {
             } else {
                 // Rollback
                 setOrders(prev =>
-                    prev.map((o: any) => o._id === orderId ? { ...o, status: 'pending' } : o)
+                    prev.map((o: UserOrder) => o._id === orderId ? { ...o, status: 'pending' } : o)
                 )
                 toast.error('Cannot cancel this order. It may have already been accepted.')
             }
         } catch {
             // Rollback
             setOrders(prev =>
-                prev.map((o: any) => o._id === orderId ? { ...o, status: 'pending' } : o)
+                prev.map((o: UserOrder) => o._id === orderId ? { ...o, status: 'pending' } : o)
             )
             toast.error('Failed to cancel order')
         } finally {
@@ -62,7 +64,7 @@ function OrderHistory() {
         }
     }
 
-    const formatTime = (dateStr: string) => {
+    const formatTime = (dateStr: string | Date) => {
         const date = new Date(dateStr)
         return date.toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     }
@@ -84,7 +86,7 @@ function OrderHistory() {
                     <div className="mb-6">
                         <h2 className="text-sm font-medium text-yellow-400 mb-3">Pending ({pendingOrders.length})</h2>
                         <div className="space-y-3">
-                            {pendingOrders.map((order: any) => (
+                            {pendingOrders.map((order: UserOrder) => (
                                 <div
                                     key={order._id}
                                     className="glass-card rounded-xl p-5 animate-fade-in border-yellow-500/20"
@@ -133,7 +135,7 @@ function OrderHistory() {
                     <div className="mb-6">
                         <h2 className="text-sm font-medium text-blue-400 mb-3">In Progress ({activeOrders.length})</h2>
                         <div className="space-y-3">
-                            {activeOrders.map((order: any) => (
+                            {activeOrders.map((order: UserOrder) => (
                                 <div
                                     key={order._id}
                                     className="glass-card rounded-xl p-5 animate-fade-in"
@@ -171,7 +173,7 @@ function OrderHistory() {
                     <h2 className="text-sm font-medium text-slate-400 mb-3">Order History</h2>
                     {completedOrders.length > 0 ? (
                         <div className="space-y-3">
-                            {completedOrders.map((order: any) => (
+                            {completedOrders.map((order: UserOrder) => (
                                 <div
                                     key={order._id}
                                     className="glass-card rounded-xl p-5 opacity-75 animate-fade-in"
