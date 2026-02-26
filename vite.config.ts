@@ -9,6 +9,13 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
 const config = defineConfig({
+  optimizeDeps: {
+    include: [
+      '@clerk/tanstack-react-start',
+      '@clerk/clerk-react',
+      'cookie'
+    ],
+  },
   plugins: [
     devtools(),
     nitro({ rollupConfig: { external: [/^@sentry\//] } }),
