@@ -17,7 +17,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRiderRouteImport } from './routes/_authenticated/rider'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as AuthenticatedMerchantSetupRouteImport } from './routes/_authenticated/merchant-setup'
+import { Route as AuthenticatedMerchantRouteImport } from './routes/_authenticated/merchant'
 import { Route as AuthenticatedOrderNewRouteImport } from './routes/_authenticated/order/new'
+import { Route as AuthenticatedMerchantPricingRouteImport } from './routes/_authenticated/merchant/pricing'
+import { Route as AuthenticatedMerchantOverviewRouteImport } from './routes/_authenticated/merchant/overview'
+import { Route as AuthenticatedMerchantInventoryRouteImport } from './routes/_authenticated/merchant/inventory'
+import { Route as AuthenticatedMerchantHeatmapRouteImport } from './routes/_authenticated/merchant/heatmap'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -58,20 +64,61 @@ const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMerchantSetupRoute =
+  AuthenticatedMerchantSetupRouteImport.update({
+    id: '/merchant-setup',
+    path: '/merchant-setup',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedMerchantRoute = AuthenticatedMerchantRouteImport.update({
+  id: '/merchant',
+  path: '/merchant',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedOrderNewRoute = AuthenticatedOrderNewRouteImport.update({
   id: '/order/new',
   path: '/order/new',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedMerchantPricingRoute =
+  AuthenticatedMerchantPricingRouteImport.update({
+    id: '/pricing',
+    path: '/pricing',
+    getParentRoute: () => AuthenticatedMerchantRoute,
+  } as any)
+const AuthenticatedMerchantOverviewRoute =
+  AuthenticatedMerchantOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => AuthenticatedMerchantRoute,
+  } as any)
+const AuthenticatedMerchantInventoryRoute =
+  AuthenticatedMerchantInventoryRouteImport.update({
+    id: '/inventory',
+    path: '/inventory',
+    getParentRoute: () => AuthenticatedMerchantRoute,
+  } as any)
+const AuthenticatedMerchantHeatmapRoute =
+  AuthenticatedMerchantHeatmapRouteImport.update({
+    id: '/heatmap',
+    path: '/heatmap',
+    getParentRoute: () => AuthenticatedMerchantRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/merchant': typeof AuthenticatedMerchantRouteWithChildren
+  '/merchant-setup': typeof AuthenticatedMerchantSetupRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/rider': typeof AuthenticatedRiderRoute
+  '/merchant/heatmap': typeof AuthenticatedMerchantHeatmapRoute
+  '/merchant/inventory': typeof AuthenticatedMerchantInventoryRoute
+  '/merchant/overview': typeof AuthenticatedMerchantOverviewRoute
+  '/merchant/pricing': typeof AuthenticatedMerchantPricingRoute
   '/order/new': typeof AuthenticatedOrderNewRoute
 }
 export interface FileRoutesByTo {
@@ -79,9 +126,15 @@ export interface FileRoutesByTo {
   '/merchants': typeof MerchantsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/merchant': typeof AuthenticatedMerchantRouteWithChildren
+  '/merchant-setup': typeof AuthenticatedMerchantSetupRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/rider': typeof AuthenticatedRiderRoute
+  '/merchant/heatmap': typeof AuthenticatedMerchantHeatmapRoute
+  '/merchant/inventory': typeof AuthenticatedMerchantInventoryRoute
+  '/merchant/overview': typeof AuthenticatedMerchantOverviewRoute
+  '/merchant/pricing': typeof AuthenticatedMerchantPricingRoute
   '/order/new': typeof AuthenticatedOrderNewRoute
 }
 export interface FileRoutesById {
@@ -91,9 +144,15 @@ export interface FileRoutesById {
   '/merchants': typeof MerchantsRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/_authenticated/merchant': typeof AuthenticatedMerchantRouteWithChildren
+  '/_authenticated/merchant-setup': typeof AuthenticatedMerchantSetupRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/rider': typeof AuthenticatedRiderRoute
+  '/_authenticated/merchant/heatmap': typeof AuthenticatedMerchantHeatmapRoute
+  '/_authenticated/merchant/inventory': typeof AuthenticatedMerchantInventoryRoute
+  '/_authenticated/merchant/overview': typeof AuthenticatedMerchantOverviewRoute
+  '/_authenticated/merchant/pricing': typeof AuthenticatedMerchantPricingRoute
   '/_authenticated/order/new': typeof AuthenticatedOrderNewRoute
 }
 export interface FileRouteTypes {
@@ -103,9 +162,15 @@ export interface FileRouteTypes {
     | '/merchants'
     | '/sign-in'
     | '/sign-up'
+    | '/merchant'
+    | '/merchant-setup'
     | '/orders'
     | '/profile'
     | '/rider'
+    | '/merchant/heatmap'
+    | '/merchant/inventory'
+    | '/merchant/overview'
+    | '/merchant/pricing'
     | '/order/new'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -113,9 +178,15 @@ export interface FileRouteTypes {
     | '/merchants'
     | '/sign-in'
     | '/sign-up'
+    | '/merchant'
+    | '/merchant-setup'
     | '/orders'
     | '/profile'
     | '/rider'
+    | '/merchant/heatmap'
+    | '/merchant/inventory'
+    | '/merchant/overview'
+    | '/merchant/pricing'
     | '/order/new'
   id:
     | '__root__'
@@ -124,9 +195,15 @@ export interface FileRouteTypes {
     | '/merchants'
     | '/sign-in'
     | '/sign-up'
+    | '/_authenticated/merchant'
+    | '/_authenticated/merchant-setup'
     | '/_authenticated/orders'
     | '/_authenticated/profile'
     | '/_authenticated/rider'
+    | '/_authenticated/merchant/heatmap'
+    | '/_authenticated/merchant/inventory'
+    | '/_authenticated/merchant/overview'
+    | '/_authenticated/merchant/pricing'
     | '/_authenticated/order/new'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +273,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/merchant-setup': {
+      id: '/_authenticated/merchant-setup'
+      path: '/merchant-setup'
+      fullPath: '/merchant-setup'
+      preLoaderRoute: typeof AuthenticatedMerchantSetupRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/merchant': {
+      id: '/_authenticated/merchant'
+      path: '/merchant'
+      fullPath: '/merchant'
+      preLoaderRoute: typeof AuthenticatedMerchantRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/order/new': {
       id: '/_authenticated/order/new'
       path: '/order/new'
@@ -203,10 +294,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrderNewRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/merchant/pricing': {
+      id: '/_authenticated/merchant/pricing'
+      path: '/pricing'
+      fullPath: '/merchant/pricing'
+      preLoaderRoute: typeof AuthenticatedMerchantPricingRouteImport
+      parentRoute: typeof AuthenticatedMerchantRoute
+    }
+    '/_authenticated/merchant/overview': {
+      id: '/_authenticated/merchant/overview'
+      path: '/overview'
+      fullPath: '/merchant/overview'
+      preLoaderRoute: typeof AuthenticatedMerchantOverviewRouteImport
+      parentRoute: typeof AuthenticatedMerchantRoute
+    }
+    '/_authenticated/merchant/inventory': {
+      id: '/_authenticated/merchant/inventory'
+      path: '/inventory'
+      fullPath: '/merchant/inventory'
+      preLoaderRoute: typeof AuthenticatedMerchantInventoryRouteImport
+      parentRoute: typeof AuthenticatedMerchantRoute
+    }
+    '/_authenticated/merchant/heatmap': {
+      id: '/_authenticated/merchant/heatmap'
+      path: '/heatmap'
+      fullPath: '/merchant/heatmap'
+      preLoaderRoute: typeof AuthenticatedMerchantHeatmapRouteImport
+      parentRoute: typeof AuthenticatedMerchantRoute
+    }
   }
 }
 
+interface AuthenticatedMerchantRouteChildren {
+  AuthenticatedMerchantHeatmapRoute: typeof AuthenticatedMerchantHeatmapRoute
+  AuthenticatedMerchantInventoryRoute: typeof AuthenticatedMerchantInventoryRoute
+  AuthenticatedMerchantOverviewRoute: typeof AuthenticatedMerchantOverviewRoute
+  AuthenticatedMerchantPricingRoute: typeof AuthenticatedMerchantPricingRoute
+}
+
+const AuthenticatedMerchantRouteChildren: AuthenticatedMerchantRouteChildren = {
+  AuthenticatedMerchantHeatmapRoute: AuthenticatedMerchantHeatmapRoute,
+  AuthenticatedMerchantInventoryRoute: AuthenticatedMerchantInventoryRoute,
+  AuthenticatedMerchantOverviewRoute: AuthenticatedMerchantOverviewRoute,
+  AuthenticatedMerchantPricingRoute: AuthenticatedMerchantPricingRoute,
+}
+
+const AuthenticatedMerchantRouteWithChildren =
+  AuthenticatedMerchantRoute._addFileChildren(
+    AuthenticatedMerchantRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
+  AuthenticatedMerchantRoute: typeof AuthenticatedMerchantRouteWithChildren
+  AuthenticatedMerchantSetupRoute: typeof AuthenticatedMerchantSetupRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRiderRoute: typeof AuthenticatedRiderRoute
@@ -214,6 +354,8 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedMerchantRoute: AuthenticatedMerchantRouteWithChildren,
+  AuthenticatedMerchantSetupRoute: AuthenticatedMerchantSetupRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRiderRoute: AuthenticatedRiderRoute,

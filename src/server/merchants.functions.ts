@@ -61,13 +61,41 @@ export const getMerchantById = createServerFn({ method: 'GET' })
     }
   })
 
+/**
+ * Get the current user's merchant profile.
+ * Returns null if the user hasn't registered as a merchant yet.
+ */
+export const getMyMerchant = createServerFn({ method: 'GET' })
+  .middleware([requireAuthMiddleware])
+  .handler(async ({ context }) => {
+    await connectToDatabase()
+
+    const merchant = await MerchantModel.findOne({ ownerUserId: context.userId }).lean()
+
+    if (!merchant) return null
+
+    return {
+      ...merchant,
+      _id: merchant._id.toString(),
+    }
+  })
+
 export const createMerchant = createServerFn({ method: 'POST' })
   .inputValidator(MerchantSchema)
   .middleware([requireAuthMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     await connectToDatabase()
 
-    const merchant = await MerchantModel.create(data)
+    // Check if user already has a merchant profile
+    const existing = await MerchantModel.findOne({ ownerUserId: context.userId })
+    if (existing) {
+      throw new Error('You already have a merchant profile')
+    }
+
+    const merchant = await MerchantModel.create({
+      ...data,
+      ownerUserId: context.userId,
+    })
     return merchant._id.toString()
   })
 
@@ -132,6 +160,15 @@ export const getOrderAnalytics = createServerFn({ method: 'GET' })
       if (data.startDate) dateFilter.$gte = new Date(data.startDate)
       if (data.endDate) dateFilter.$lte = new Date(data.endDate)
       query.createdAt = dateFilter
+    }
+
+    // Geofencing: filter orders whose deliveryLocation falls within the polygon
+    if (data.polygon && data.polygon.length >= 3) {
+      query['deliveryLocation'] = {
+        $geoWithin: {
+          $polygon: data.polygon,
+        },
+      }
     }
 
     const orders = await OrderModel.find(query).lean()

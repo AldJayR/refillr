@@ -21,6 +21,9 @@ export class GeoPoint {
   },
 })
 export class Merchant {
+  @prop({ required: true, unique: true, type: () => String })
+  public ownerUserId!: string
+
   @prop({ required: true, type: () => String })
   public shopName!: string
 

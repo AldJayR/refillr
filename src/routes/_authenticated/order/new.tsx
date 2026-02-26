@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { createRefillRequest } from '@/server/orders.functions'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authenticated/order/new')({
     component: NewOrder,
@@ -93,11 +94,18 @@ function NewOrder() {
             if (orderId) {
                 setCreatedOrderId(orderId)
                 setStep(4)
+                toast.success('Order placed successfully!', {
+                    description: `Your ${selectedBrand} ${selectedSize} order is being processed.`,
+                })
             } else {
-                setError('Failed to place order. Please try again.')
+                const msg = 'Failed to place order. Please try again.'
+                setError(msg)
+                toast.error(msg)
             }
         } catch {
-            setError('An unexpected error occurred. Please try again.')
+            const msg = 'An unexpected error occurred. Please try again.'
+            setError(msg)
+            toast.error(msg)
         } finally {
             setIsSubmitting(false)
         }

@@ -8,7 +8,7 @@ import {
 } from '@clerk/tanstack-react-start'
 
 import { useState } from 'react'
-import { Home, Menu, X, Truck, User, ShoppingBag, ListChecks, Flame } from 'lucide-react'
+import { Home, Menu, X, Truck, User, ShoppingBag, ListChecks, Flame, Store } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Header() {
@@ -136,6 +136,18 @@ export default function Header() {
             >
               <Truck size={20} />
               <span>Rider Workspace</span>
+            </Link>
+
+            <Link
+              to="/merchant/overview"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+              activeProps={{
+                className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+              }}
+            >
+              <Store size={20} />
+              <span>Merchant Dashboard</span>
             </Link>
           </div>
         </nav>

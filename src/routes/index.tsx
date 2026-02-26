@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   Flame,
@@ -15,6 +15,8 @@ import TrustBadge from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getNearbyMerchants } from '@/server/merchants.functions'
+import { formatDistance } from '@/lib/distance'
+import { useGeolocation } from '@/hooks/useGeolocation'
 import { z } from 'zod'
 
 const searchSchema = z.object({
@@ -38,19 +40,13 @@ function Dashboard() {
   const navigate = Route.useNavigate()
   const [selectedMerchant, setSelectedMerchant] = useState<string | null>(null)
 
-  // Detect geolocation once and update search params to trigger loader re-run
-  useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const newLat = pos.coords.latitude
-        const newLng = pos.coords.longitude
-        // Only navigate if coords actually changed from defaults
-        if (Math.abs(newLat - lat) > 0.001 || Math.abs(newLng - lng) > 0.001) {
-          navigate({ search: { lat: newLat, lng: newLng } })
-        }
-      })
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useGeolocation({
+    currentLat: lat,
+    currentLng: lng,
+    onLocationDetected: (newLat, newLng) => {
+      navigate({ search: { lat: newLat, lng: newLng } })
+    },
+  })
 
   const mapMarkers = merchants.map((m: any) => ({
     id: m._id,
@@ -130,7 +126,9 @@ function Dashboard() {
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin size={14} />
-                      Nearby
+                      {merchant.location?.coordinates
+                        ? formatDistance(lat, lng, merchant.location.coordinates)
+                        : 'Nearby'}
                     </span>
                   </div>
                 </div>

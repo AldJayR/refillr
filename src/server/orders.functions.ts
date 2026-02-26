@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { connectToDatabase } from '@/lib/db.server'
 import { OrderModel } from '@/models/Order.server'
+import { MerchantModel } from '@/models/Merchant.server'
 import {
   CreateOrderSchema,
   UpdateOrderStatusSchema,
@@ -9,12 +10,41 @@ import {
 import { Types } from 'mongoose'
 import { z } from 'zod'
 import { requireAuthMiddleware } from './middleware'
+import { point, distance, booleanPointInPolygon, polygon as turfPolygon } from '@turf/turf'
 
 export const createRefillRequest = createServerFn({ method: 'POST' })
   .inputValidator(CreateOrderSchema)
   .middleware([requireAuthMiddleware])
   .handler(async ({ data, context }) => {
     await connectToDatabase()
+
+    // Look up the merchant to validate geofencing
+    const merchant = await MerchantModel.findById(data.merchantId).lean()
+    if (!merchant) {
+      throw new Error('Merchant not found')
+    }
+
+    const deliveryPoint = point(data.deliveryLocation.coordinates)
+    const merchantPoint = point(merchant.location.coordinates)
+
+    // Check geofencing: polygon takes priority, then radius
+    if (merchant.deliveryPolygon && merchant.deliveryPolygon.coordinates?.length > 0) {
+      // Use Turf.js booleanPointInPolygon for polygon-based geofencing
+      const poly = turfPolygon(merchant.deliveryPolygon.coordinates)
+      const isInside = booleanPointInPolygon(deliveryPoint, poly)
+      if (!isInside) {
+        throw new Error('Delivery location is outside this merchant\'s service area')
+      }
+    } else {
+      // Fall back to radius-based check
+      const distKm = distance(deliveryPoint, merchantPoint, { units: 'kilometers' })
+      const distMeters = distKm * 1000
+      if (distMeters > merchant.deliveryRadiusMeters) {
+        throw new Error(
+          `Delivery location is ${(distKm).toFixed(1)}km away, but this merchant only delivers within ${(merchant.deliveryRadiusMeters / 1000).toFixed(1)}km`
+        )
+      }
+    }
 
     const order = await OrderModel.create({
       ...data,

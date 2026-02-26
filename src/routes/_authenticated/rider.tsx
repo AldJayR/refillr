@@ -18,6 +18,8 @@ import {
     markDispatched,
     markDelivered
 } from '@/server/rider.functions'
+import { useGeolocation } from '@/hooks/useGeolocation'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 const searchSchema = z.object({
@@ -65,18 +67,13 @@ function RiderDashboard() {
     const [loading, setLoading] = useState(false)
     const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-    // Detect geolocation once and update search params to trigger loader re-run
-    useEffect(() => {
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const newLat = pos.coords.latitude
-                const newLng = pos.coords.longitude
-                if (Math.abs(newLat - lat) > 0.001 || Math.abs(newLng - lng) > 0.001) {
-                    navigate({ search: { lat: newLat, lng: newLng } })
-                }
-            })
-        }
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    useGeolocation({
+        currentLat: lat,
+        currentLng: lng,
+        onLocationDetected: (newLat, newLng) => {
+            navigate({ search: { lat: newLat, lng: newLng } })
+        },
+    })
 
     // Manual refresh for polling
     const fetchOrders = useCallback(async () => {
@@ -91,7 +88,7 @@ function RiderDashboard() {
             })
             setOrders(result as OrderItem[])
         } catch {
-            console.error('Failed to fetch orders')
+            toast.error('Failed to fetch nearby orders')
         } finally {
             setLoading(false)
         }
@@ -105,20 +102,37 @@ function RiderDashboard() {
 
     const handleAccept = async (orderId: string) => {
         setActionLoading(orderId)
+        // Optimistic: move to active immediately
+        const acceptedOrder = orders.find(o => o._id === orderId)
+        if (acceptedOrder) {
+            setActiveOrders(prev => [...prev, { ...acceptedOrder, status: 'accepted' }])
+            setOrders(prev => prev.filter(o => o._id !== orderId))
+        }
+
         try {
             const result = await acceptOrder({
                 data: { orderId }
             }) as { success: boolean; orderId?: string }
 
             if (result.success) {
-                const acceptedOrder = orders.find(o => o._id === orderId)
+                toast.success('Order accepted!', {
+                    description: `${acceptedOrder?.tankBrand} ${acceptedOrder?.tankSize} - ₱${acceptedOrder?.totalPrice}`,
+                })
+            } else {
+                // Rollback optimistic update
                 if (acceptedOrder) {
-                    setActiveOrders(prev => [...prev, { ...acceptedOrder, status: 'accepted' }])
-                    setOrders(prev => prev.filter(o => o._id !== orderId))
+                    setActiveOrders(prev => prev.filter(o => o._id !== orderId))
+                    setOrders(prev => [...prev, acceptedOrder])
                 }
+                toast.error('Failed to accept order')
             }
         } catch {
-            console.error('Failed to accept order')
+            // Rollback optimistic update
+            if (acceptedOrder) {
+                setActiveOrders(prev => prev.filter(o => o._id !== orderId))
+                setOrders(prev => [...prev, acceptedOrder])
+            }
+            toast.error('Failed to accept order')
         } finally {
             setActionLoading(null)
         }
@@ -126,15 +140,28 @@ function RiderDashboard() {
 
     const handleDispatch = async (orderId: string) => {
         setActionLoading(orderId)
+        // Optimistic: update status immediately
+        setActiveOrders(prev =>
+            prev.map(o => o._id === orderId ? { ...o, status: 'dispatched' } : o)
+        )
+
         try {
             const success = await markDispatched({ data: orderId })
             if (success) {
+                toast.success('Order dispatched! On the way.')
+            } else {
+                // Rollback
                 setActiveOrders(prev =>
-                    prev.map(o => o._id === orderId ? { ...o, status: 'dispatched' } : o)
+                    prev.map(o => o._id === orderId ? { ...o, status: 'accepted' } : o)
                 )
+                toast.error('Failed to mark as dispatched')
             }
         } catch {
-            console.error('Failed to mark dispatched')
+            // Rollback
+            setActiveOrders(prev =>
+                prev.map(o => o._id === orderId ? { ...o, status: 'accepted' } : o)
+            )
+            toast.error('Failed to mark as dispatched')
         } finally {
             setActionLoading(null)
         }
@@ -142,13 +169,29 @@ function RiderDashboard() {
 
     const handleDeliver = async (orderId: string) => {
         setActionLoading(orderId)
+        // Optimistic: remove from active immediately
+        const deliveredOrder = activeOrders.find(o => o._id === orderId)
+        setActiveOrders(prev => prev.filter(o => o._id !== orderId))
+
         try {
             const success = await markDelivered({ data: orderId })
             if (success) {
-                setActiveOrders(prev => prev.filter(o => o._id !== orderId))
+                toast.success('Order delivered! Great job.', {
+                    description: `₱${deliveredOrder?.totalPrice} earned`,
+                })
+            } else {
+                // Rollback
+                if (deliveredOrder) {
+                    setActiveOrders(prev => [...prev, deliveredOrder])
+                }
+                toast.error('Failed to mark as delivered')
             }
         } catch {
-            console.error('Failed to mark delivered')
+            // Rollback
+            if (deliveredOrder) {
+                setActiveOrders(prev => [...prev, deliveredOrder])
+            }
+            toast.error('Failed to mark as delivered')
         } finally {
             setActionLoading(null)
         }

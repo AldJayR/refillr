@@ -1,9 +1,10 @@
 import TrustBadge from '@/components/TrustBadge'
 import { getNearbyMerchants } from '@/server/merchants.functions'
-import { useEffect } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Clock, MapPin, Filter, Phone } from 'lucide-react'
+import { formatDistance } from '@/lib/distance'
+import { useGeolocation } from '@/hooks/useGeolocation'
 import { z } from 'zod'
 
 const searchSchema = z.object({
@@ -26,18 +27,13 @@ function MerchantsList() {
   const { lat, lng } = Route.useSearch()
   const navigate = Route.useNavigate()
 
-  // Detect geolocation once and update search params to trigger loader re-run
-  useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const newLat = pos.coords.latitude
-        const newLng = pos.coords.longitude
-        if (Math.abs(newLat - lat) > 0.001 || Math.abs(newLng - lng) > 0.001) {
-          navigate({ search: { lat: newLat, lng: newLng } })
-        }
-      })
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useGeolocation({
+    currentLat: lat,
+    currentLng: lng,
+    onLocationDetected: (newLat, newLng) => {
+      navigate({ search: { lat: newLat, lng: newLng } })
+    },
+  })
 
   const openMerchants = merchants.filter((m: any) => m.isOpen)
   const closedMerchants = merchants.filter((m: any) => !m.isOpen)
@@ -85,7 +81,9 @@ function MerchantsList() {
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin size={14} />
-                            Nearby
+                            {merchant.location?.coordinates
+                              ? formatDistance(lat, lng, merchant.location.coordinates)
+                              : 'Nearby'}
                           </span>
                         </div>
                       </div>
@@ -134,7 +132,9 @@ function MerchantsList() {
                           </span>
                           <span className="flex items-center gap-1">
                             <MapPin size={14} />
-                            Nearby
+                            {merchant.location?.coordinates
+                              ? formatDistance(lat, lng, merchant.location.coordinates)
+                              : 'Nearby'}
                           </span>
                         </div>
                       </div>

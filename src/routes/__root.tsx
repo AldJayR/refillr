@@ -5,6 +5,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ClerkProvider } from '@clerk/tanstack-react-start'
 
 import Header from '../components/Header'
+import { Toaster } from '../components/ui/sonner'
 
 import appCss from '../styles.css?url'
 
@@ -95,6 +96,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               },
             ]}
           />
+          <Toaster position="top-right" />
           <Scripts />
         </body>
       </html>

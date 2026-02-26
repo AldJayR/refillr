@@ -93,6 +93,7 @@ export const GetOrderAnalyticsSchema = z.object({
   merchantId: z.string().regex(objectIdRegex, 'Invalid merchant ID format'),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  polygon: z.array(z.array(z.number())).min(3).optional(),
 })
 
 // Inventory schemas
