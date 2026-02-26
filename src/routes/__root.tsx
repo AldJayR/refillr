@@ -68,12 +68,12 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <head>
-          <HeadContent />
-        </head>
-        <body>
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <ClerkProvider>
           <Header />
           <Suspense fallback={
             <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -86,22 +86,22 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             {children}
           </Suspense>
           <Toaster position="top-right" />
-          {import.meta.env.DEV && (
-            <TanStackDevtools
-              config={{
-                position: 'bottom-right',
-              }}
-              plugins={[
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            />
-          )}
-          <Scripts />
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+        {import.meta.env.DEV && (
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        )}
+        <Scripts />
+      </body>
+    </html>
   )
 }

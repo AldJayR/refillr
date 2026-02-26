@@ -9,11 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as MerchantsRouteImport } from './routes/merchants'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
+import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as AuthenticatedRiderSetupRouteImport } from './routes/_authenticated/rider-setup'
 import { Route as AuthenticatedRiderRouteImport } from './routes/_authenticated/rider'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -27,16 +27,6 @@ import { Route as AuthenticatedMerchantInventoryRouteImport } from './routes/_au
 import { Route as AuthenticatedMerchantHeatmapRouteImport } from './routes/_authenticated/merchant/heatmap'
 import { Route as AuthenticatedMerchantDispatchRouteImport } from './routes/_authenticated/merchant/dispatch'
 
-const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MerchantsRoute = MerchantsRouteImport.update({
   id: '/merchants',
   path: '/merchants',
@@ -49,6 +39,16 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpSplatRoute = SignUpSplatRouteImport.update({
+  id: '/sign-up/$',
+  path: '/sign-up/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInSplatRoute = SignInSplatRouteImport.update({
+  id: '/sign-in/$',
+  path: '/sign-in/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRiderSetupRoute = AuthenticatedRiderSetupRouteImport.update({
@@ -121,14 +121,14 @@ const AuthenticatedMerchantDispatchRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
   '/merchant': typeof AuthenticatedMerchantRouteWithChildren
   '/merchant-setup': typeof AuthenticatedMerchantSetupRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/rider': typeof AuthenticatedRiderRoute
   '/rider-setup': typeof AuthenticatedRiderSetupRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/merchant/dispatch': typeof AuthenticatedMerchantDispatchRoute
   '/merchant/heatmap': typeof AuthenticatedMerchantHeatmapRoute
   '/merchant/inventory': typeof AuthenticatedMerchantInventoryRoute
@@ -139,14 +139,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/merchants': typeof MerchantsRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
   '/merchant': typeof AuthenticatedMerchantRouteWithChildren
   '/merchant-setup': typeof AuthenticatedMerchantSetupRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/rider': typeof AuthenticatedRiderRoute
   '/rider-setup': typeof AuthenticatedRiderSetupRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/merchant/dispatch': typeof AuthenticatedMerchantDispatchRoute
   '/merchant/heatmap': typeof AuthenticatedMerchantHeatmapRoute
   '/merchant/inventory': typeof AuthenticatedMerchantInventoryRoute
@@ -159,14 +159,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/merchants': typeof MerchantsRoute
-  '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
   '/_authenticated/merchant': typeof AuthenticatedMerchantRouteWithChildren
   '/_authenticated/merchant-setup': typeof AuthenticatedMerchantSetupRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/rider': typeof AuthenticatedRiderRoute
   '/_authenticated/rider-setup': typeof AuthenticatedRiderSetupRoute
+  '/sign-in/$': typeof SignInSplatRoute
+  '/sign-up/$': typeof SignUpSplatRoute
   '/_authenticated/merchant/dispatch': typeof AuthenticatedMerchantDispatchRoute
   '/_authenticated/merchant/heatmap': typeof AuthenticatedMerchantHeatmapRoute
   '/_authenticated/merchant/inventory': typeof AuthenticatedMerchantInventoryRoute
@@ -179,14 +179,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/merchants'
-    | '/sign-in'
-    | '/sign-up'
     | '/merchant'
     | '/merchant-setup'
     | '/orders'
     | '/profile'
     | '/rider'
     | '/rider-setup'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/merchant/dispatch'
     | '/merchant/heatmap'
     | '/merchant/inventory'
@@ -197,14 +197,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/merchants'
-    | '/sign-in'
-    | '/sign-up'
     | '/merchant'
     | '/merchant-setup'
     | '/orders'
     | '/profile'
     | '/rider'
     | '/rider-setup'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/merchant/dispatch'
     | '/merchant/heatmap'
     | '/merchant/inventory'
@@ -216,14 +216,14 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/merchants'
-    | '/sign-in'
-    | '/sign-up'
     | '/_authenticated/merchant'
     | '/_authenticated/merchant-setup'
     | '/_authenticated/orders'
     | '/_authenticated/profile'
     | '/_authenticated/rider'
     | '/_authenticated/rider-setup'
+    | '/sign-in/$'
+    | '/sign-up/$'
     | '/_authenticated/merchant/dispatch'
     | '/_authenticated/merchant/heatmap'
     | '/_authenticated/merchant/inventory'
@@ -236,26 +236,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   MerchantsRoute: typeof MerchantsRoute
-  SignInRoute: typeof SignInRoute
-  SignUpRoute: typeof SignUpRoute
+  SignInSplatRoute: typeof SignInSplatRoute
+  SignUpSplatRoute: typeof SignUpSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/merchants': {
       id: '/merchants'
       path: '/merchants'
@@ -275,6 +261,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up/$': {
+      id: '/sign-up/$'
+      path: '/sign-up/$'
+      fullPath: '/sign-up/$'
+      preLoaderRoute: typeof SignUpSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in/$': {
+      id: '/sign-in/$'
+      path: '/sign-in/$'
+      fullPath: '/sign-in/$'
+      preLoaderRoute: typeof SignInSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/rider-setup': {
@@ -413,8 +413,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   MerchantsRoute: MerchantsRoute,
-  SignInRoute: SignInRoute,
-  SignUpRoute: SignUpRoute,
+  SignInSplatRoute: SignInSplatRoute,
+  SignUpSplatRoute: SignUpSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
