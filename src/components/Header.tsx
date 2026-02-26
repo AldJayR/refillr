@@ -2,8 +2,6 @@ import { Link } from '@tanstack/react-router'
 import {
   SignedIn,
   SignedOut,
-  SignInButton,
-  SignUpButton,
   UserButton,
 } from '@clerk/tanstack-react-start'
 
@@ -86,23 +84,23 @@ export default function Header() {
             </SignedIn>
             <SignedOut>
               <div className="hidden sm:flex items-center gap-3">
-                <SignInButton forceRedirectUrl="/" fallbackRedirectUrl="/">
+                <Link to="/sign-in">
                   <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50">
                     Log in
                   </Button>
-                </SignInButton>
-                <SignUpButton forceRedirectUrl="/" fallbackRedirectUrl="/">
+                </Link>
+                <Link to="/sign-up">
                   <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-6 font-medium">
                     Sign up
                   </Button>
-                </SignUpButton>
+                </Link>
               </div>
               <div className="sm:hidden">
-                <SignInButton forceRedirectUrl="/" fallbackRedirectUrl="/">
+                <Link to="/sign-in">
                   <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-4 font-medium">
                     Log in
                   </Button>
-                </SignInButton>
+                </Link>
               </div>
             </SignedOut>
           </div>
