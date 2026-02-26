@@ -4,6 +4,17 @@ import { UserModel } from '@/models/User.server'
 import { SaveAddressSchema } from '@/lib/schemas'
 import { requireAuthMiddleware } from './middleware'
 import { z } from 'zod'
+import { auth } from '@clerk/tanstack-react-start/server'
+
+/**
+ * Get the current Clerk auth state (userId).
+ * Used by the _authenticated layout to guard routes.
+ */
+export const getAuthState = createServerFn({ method: 'GET' }).handler(async () => {
+    const { userId } = await auth()
+    return { userId }
+})
+
 
 /**
  * Get saved addresses for the authenticated user.

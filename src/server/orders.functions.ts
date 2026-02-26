@@ -9,7 +9,7 @@ import {
 } from '@/lib/schemas'
 import { Types } from 'mongoose'
 import { z } from 'zod'
-import { requireAuthMiddleware } from './middleware'
+import { requireAuthMiddleware, requireMerchantOwnership } from './middleware'
 import { point, distance, booleanPointInPolygon, polygon as turfPolygon } from '@turf/turf'
 
 export const createRefillRequest = createServerFn({ method: 'POST' })
@@ -76,7 +76,7 @@ export const getUserOrders = createServerFn({ method: 'GET' })
 
 export const getMerchantOrders = createServerFn({ method: 'GET' })
   .inputValidator(z.object({ merchantId: z.string() }))
-  .middleware([requireAuthMiddleware])
+  .middleware([requireMerchantOwnership])
   .handler(async ({ data }) => {
     await connectToDatabase()
 
@@ -123,8 +123,16 @@ export const cancelOrder = createServerFn({ method: 'POST' })
 export const updateOrderStatus = createServerFn({ method: 'POST' })
   .inputValidator(UpdateOrderStatusSchema)
   .middleware([requireAuthMiddleware])
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     await connectToDatabase()
+
+    // Authorization: only the order owner or assigned rider may update status
+    const order = await OrderModel.findById(data.orderId)
+    if (!order) return false
+
+    const isOwner = order.userId === context.userId
+    const isRider = order.riderId === context.userId
+    if (!isOwner && !isRider) return false
 
     const updateFields: Record<string, unknown> = {
       status: data.status,
@@ -162,12 +170,20 @@ export const updateOrderStatus = createServerFn({ method: 'POST' })
 
 export const getOrderById = createServerFn({ method: 'GET' })
   .inputValidator(z.object({ orderId: z.string() }))
-  .handler(async ({ data }) => {
+  .middleware([requireAuthMiddleware])
+  .handler(async ({ data, context }) => {
     await connectToDatabase()
 
     const order = await OrderModel.findById(data.orderId).lean()
 
     if (!order) return null
+
+    // Only allow the order owner, assigned rider, or merchant to view
+    const isOwner = order.userId === context.userId
+    const isRider = order.riderId === context.userId
+    if (!isOwner && !isRider) {
+      return null
+    }
 
     return {
       ...order,

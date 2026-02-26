@@ -73,6 +73,10 @@ export class Order {
 
   @prop({ type: () => String })
   public cancellationReason?: string
+
+  // Managed by timestamps: true
+  public createdAt!: Date
+  public updatedAt!: Date
 }
 
 export const OrderModel = getModelForClass(Order)

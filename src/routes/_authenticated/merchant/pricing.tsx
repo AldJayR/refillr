@@ -1,26 +1,57 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { getMerchantById, updateMerchantPricing } from '@/server/merchants.functions'
+import { getDOEPrices } from '@/server/doe.functions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { DollarSign, Save } from 'lucide-react'
+import { DollarSign, Save, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const BRANDS = ['Gasul', 'Solane', 'Petron'] as const
 const SIZES = ['2.7kg', '5kg', '11kg', '22kg', '50kg'] as const
 
 export const Route = createFileRoute('/_authenticated/merchant/pricing')({
-  loader: ({ context }) => {
+  loader: async ({ context }) => {
     const merchantId = (context as any).merchantId as string
-    return getMerchantById({ data: { merchantId } })
+    const [merchant, doeConfig] = await Promise.all([
+      getMerchantById({ data: { merchantId } }),
+      getDOEPrices(),
+    ])
+    return { merchant, doeConfig }
   },
   component: PricingManagement,
 })
 
+type ComplianceStatus = 'compliant' | 'near-limit' | 'overpriced' | 'no-data'
+
+function getComplianceStatus(
+  price: number | undefined,
+  srp: number | undefined,
+  maxPrice: number | undefined
+): ComplianceStatus {
+  if (!price || !srp || !maxPrice) return 'no-data'
+  if (price > maxPrice) return 'overpriced'
+  if (price >= maxPrice * 0.9) return 'near-limit'
+  return 'compliant'
+}
+
+const COMPLIANCE_CONFIG: Record<ComplianceStatus, {
+  border: string
+  icon: typeof CheckCircle
+  color: string
+  label: string
+}> = {
+  compliant: { border: 'border-green-500/50', icon: CheckCircle, color: 'text-green-500', label: 'Fair Price' },
+  'near-limit': { border: 'border-yellow-500/50', icon: AlertTriangle, color: 'text-yellow-500', label: 'Near Limit' },
+  overpriced: { border: 'border-red-500/50', icon: XCircle, color: 'text-red-500', label: 'Over Max' },
+  'no-data': { border: 'border-slate-700', icon: DollarSign, color: 'text-slate-500', label: '' },
+}
+
 function PricingManagement() {
-  const merchant = Route.useLoaderData()
+  const { merchant, doeConfig } = Route.useLoaderData()
   const { merchantId } = Route.useRouteContext() as any
 
   const [pricing, setPricing] = useState<Record<string, number>>(
@@ -29,6 +60,17 @@ function PricingManagement() {
   const [saving, setSaving] = useState(false)
 
   const getKey = (brand: string, size: string) => `${brand}-${size}`
+
+  // Build DOE lookup map
+  const doeLookup: Record<string, { suggestedRetailPrice: number; maxRetailPrice: number }> = {}
+  if (doeConfig?.prices) {
+    for (const entry of doeConfig.prices as any[]) {
+      doeLookup[`${entry.brand}-${entry.size}`] = {
+        suggestedRetailPrice: entry.suggestedRetailPrice,
+        maxRetailPrice: entry.maxRetailPrice,
+      }
+    }
+  }
 
   const handlePriceChange = (brand: string, size: string, value: string) => {
     const num = parseFloat(value)
@@ -45,10 +87,7 @@ function PricingManagement() {
     setSaving(true)
     try {
       const success = await updateMerchantPricing({
-        data: {
-          merchantId,
-          pricing,
-        },
+        data: { merchantId, pricing },
       })
       if (success) {
         toast.success('Pricing updated successfully')
@@ -71,6 +110,21 @@ function PricingManagement() {
     )
   }
 
+  // Compliance summary
+  let compliantCount = 0
+  let totalPriced = 0
+  for (const brand of BRANDS) {
+    for (const size of SIZES) {
+      const key = getKey(brand, size)
+      if (pricing[key]) {
+        totalPriced++
+        const doe = doeLookup[key]
+        const status = getComplianceStatus(pricing[key], doe?.suggestedRetailPrice, doe?.maxRetailPrice)
+        if (status === 'compliant') compliantCount++
+      }
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
@@ -79,6 +133,32 @@ function PricingManagement() {
           Update your daily prices per brand and size. Prices are shown in PHP (₱).
         </p>
       </div>
+
+      {/* DOE Compliance Summary */}
+      {doeConfig && totalPriced > 0 && (
+        <Card className={cn(
+          'border',
+          compliantCount === totalPriced
+            ? 'bg-green-500/5 border-green-500/30'
+            : 'bg-yellow-500/5 border-yellow-500/30'
+        )}>
+          <CardContent className="pt-4 flex items-center gap-3">
+            {compliantCount === totalPriced ? (
+              <CheckCircle size={20} className="text-green-500 shrink-0" />
+            ) : (
+              <AlertTriangle size={20} className="text-yellow-500 shrink-0" />
+            )}
+            <div>
+              <p className="text-sm text-white font-medium">
+                DOE Compliance: {compliantCount}/{totalPriced} prices within fair range
+              </p>
+              <p className="text-xs text-slate-400">
+                Rates effective {new Date(doeConfig.effectiveDate as any).toLocaleDateString('en-PH')} ({doeConfig.weekLabel})
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {BRANDS.map((brand) => (
         <Card key={brand} className="bg-slate-900 border-slate-800">
@@ -89,6 +169,11 @@ function PricingManagement() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {SIZES.map((size) => {
                 const key = getKey(brand, size)
+                const doe = doeLookup[key]
+                const status = getComplianceStatus(pricing[key], doe?.suggestedRetailPrice, doe?.maxRetailPrice)
+                const cfg = COMPLIANCE_CONFIG[status]
+                const StatusIcon = cfg.icon
+
                 return (
                   <div key={key}>
                     <Label htmlFor={key} className="text-xs text-slate-400 mb-1 block">
@@ -105,10 +190,18 @@ function PricingManagement() {
                         step={10}
                         value={pricing[key] ?? ''}
                         onChange={(e) => handlePriceChange(brand, size, e.target.value)}
-                        className="pl-7 bg-slate-800 border-slate-700"
+                        className={cn('pl-7 bg-slate-800', cfg.border)}
                         placeholder="0"
                       />
                     </div>
+                    {doe && (
+                      <div className="mt-1 flex items-center gap-1">
+                        <StatusIcon size={11} className={cfg.color} />
+                        <span className={cn('text-[10px] leading-tight', cfg.color)}>
+                          {cfg.label ? `${cfg.label} · ` : ''}SRP ₱{doe.suggestedRetailPrice}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )
               })}

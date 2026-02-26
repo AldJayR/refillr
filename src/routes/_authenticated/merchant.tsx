@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, redirect } from '@tanstack/react-router'
-import { BarChart3, Map, Package, DollarSign, Flame } from 'lucide-react'
+import { BarChart3, Map, Package, DollarSign, Flame, Truck } from 'lucide-react'
 import { getMyMerchant } from '@/server/merchants.functions'
 
 export const Route = createFileRoute('/_authenticated/merchant')({
@@ -17,6 +17,7 @@ export const Route = createFileRoute('/_authenticated/merchant')({
 
 const NAV_ITEMS = [
   { to: '/merchant/overview', label: 'Overview', icon: BarChart3 },
+  { to: '/merchant/dispatch', label: 'Dispatch', icon: Truck },
   { to: '/merchant/heatmap', label: 'Demand Heatmap', icon: Map },
   { to: '/merchant/inventory', label: 'Inventory', icon: Package },
   { to: '/merchant/pricing', label: 'Pricing', icon: DollarSign },

@@ -112,3 +112,13 @@ export const SaveAddressSchema = z.object({
   city: z.string().optional(),
   isDefault: z.boolean().default(false),
 })
+
+// Rider registration schemas
+export const CreateRiderSchema = z.object({
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  phoneNumber: z.string().min(1).max(20),
+  vehicleType: z.enum(['motorcycle', 'bicycle', 'sidecar']),
+  plateNumber: z.string().optional(),
+  licenseNumber: z.string().optional(),
+})

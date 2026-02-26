@@ -72,6 +72,10 @@ function MerchantsList() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-white">{merchant.shopName}</h3>
                           <TrustBadge isVerified={merchant.isVerified} />
+                          <TrustBadge
+                            isVerified={Object.keys((merchant as any).pricing || {}).length > 0}
+                            variant="fair-price"
+                          />
                         </div>
                         <p className="text-sm text-slate-400 mt-1">{merchant.address || 'Address not listed'}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
@@ -123,6 +127,10 @@ function MerchantsList() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-white">{merchant.shopName}</h3>
                           <TrustBadge isVerified={merchant.isVerified} />
+                          <TrustBadge
+                            isVerified={Object.keys((merchant as any).pricing || {}).length > 0}
+                            variant="fair-price"
+                          />
                         </div>
                         <p className="text-sm text-slate-400 mt-1">{merchant.address || 'Address not listed'}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">

@@ -12,7 +12,7 @@ import {
 } from '@/lib/schemas'
 import { Types } from 'mongoose'
 import { OrderModel } from '@/models/Order.server'
-import { requireAuthMiddleware } from './middleware'
+import { requireAuthMiddleware, requireMerchantOwnership } from './middleware'
 
 export const getNearbyMerchants = createServerFn({ method: 'GET' })
   .inputValidator(GetNearbyMerchantsSchema)
@@ -89,7 +89,7 @@ export const createMerchant = createServerFn({ method: 'POST' })
     // Check if user already has a merchant profile
     const existing = await MerchantModel.findOne({ ownerUserId: context.userId })
     if (existing) {
-      throw new Error('You already have a merchant profile')
+      return { success: false as const, error: 'You already have a merchant profile' }
     }
 
     const merchant = await MerchantModel.create({
@@ -101,7 +101,7 @@ export const createMerchant = createServerFn({ method: 'POST' })
 
 export const updateMerchantPricing = createServerFn({ method: 'POST' })
   .inputValidator(UpdateMerchantPricingSchema)
-  .middleware([requireAuthMiddleware])
+  .middleware([requireMerchantOwnership])
   .handler(async ({ data }) => {
     await connectToDatabase()
 
@@ -147,7 +147,7 @@ export const getMerchantsInPolygon = createServerFn({ method: 'GET' })
  */
 export const getOrderAnalytics = createServerFn({ method: 'GET' })
   .inputValidator(GetOrderAnalyticsSchema)
-  .middleware([requireAuthMiddleware])
+  .middleware([requireMerchantOwnership])
   .handler(async ({ data }) => {
     await connectToDatabase()
 
@@ -211,7 +211,7 @@ export const getOrderAnalytics = createServerFn({ method: 'GET' })
  */
 export const updateInventory = createServerFn({ method: 'POST' })
   .inputValidator(UpdateInventorySchema)
-  .middleware([requireAuthMiddleware])
+  .middleware([requireMerchantOwnership])
   .handler(async ({ data }) => {
     await connectToDatabase()
 

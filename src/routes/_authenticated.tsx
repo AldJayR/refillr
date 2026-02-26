@@ -1,11 +1,5 @@
 import { createFileRoute, redirect, Outlet } from '@tanstack/react-router'
-import { createServerFn } from '@tanstack/react-start'
-import { auth } from '@clerk/tanstack-react-start/server'
-
-const getAuthState = createServerFn({ method: 'GET' }).handler(async () => {
-    const { userId } = await auth()
-    return { userId }
-})
+import { getAuthState } from '@/server/user.functions'
 
 export const Route = createFileRoute('/_authenticated')({
     beforeLoad: async () => {

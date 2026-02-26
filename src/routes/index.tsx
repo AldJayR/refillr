@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   Flame,
@@ -15,6 +15,7 @@ import TrustBadge from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { getNearbyMerchants } from '@/server/merchants.functions'
+import { getNearbyRiders } from '@/server/rider.functions'
 import { formatDistance } from '@/lib/distance'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { z } from 'zod'
@@ -27,15 +28,22 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/')({
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ lat: search.lat, lng: search.lng }),
-  loader: ({ deps }) =>
-    getNearbyMerchants({
-      data: { latitude: deps.lat, longitude: deps.lng, radiusMeters: 5000 },
-    }),
+  loader: async ({ deps }) => {
+    const [merchants, riders] = await Promise.all([
+      getNearbyMerchants({
+        data: { latitude: deps.lat, longitude: deps.lng, radiusMeters: 5000 },
+      }),
+      getNearbyRiders({
+        data: { latitude: deps.lat, longitude: deps.lng, radiusMeters: 5000 },
+      })
+    ])
+    return { merchants, riders }
+  },
   component: Dashboard,
 })
 
 function Dashboard() {
-  const merchants = Route.useLoaderData()
+  const { merchants, riders } = Route.useLoaderData()
   const { lat, lng } = Route.useSearch()
   const navigate = Route.useNavigate()
   const [selectedMerchant, setSelectedMerchant] = useState<string | null>(null)
@@ -48,19 +56,28 @@ function Dashboard() {
     },
   })
 
-  const mapMarkers = merchants.map((m: any) => ({
+  const mapMarkers = useMemo(() => merchants.map((m) => ({
     id: m._id,
     coordinates: m.location.coordinates,
     shopName: m.shopName,
     isVerified: m.isVerified,
     isOpen: m.isOpen
-  }))
+  })), [merchants])
+
+  const riderMarkers = useMemo(() => riders
+    .filter((r) => r.lastLocation?.coordinates)
+    .map((r) => ({
+      id: r._id,
+      coordinates: r.lastLocation!.coordinates,
+      name: `${r.firstName} ${r.lastName}`
+    })), [riders])
 
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="relative h-[60vh]">
         <Map
           markers={mapMarkers}
+          riderMarkers={riderMarkers}
           onMarkerClick={(id) => setSelectedMerchant(id)}
         />
 
@@ -101,7 +118,7 @@ function Dashboard() {
         <div className="grid gap-3">
           {merchants.length === 0 ? (
             <div className="text-center py-8 text-slate-500">No dealers found in your area.</div>
-          ) : merchants.map((merchant: any) => (
+          ) : merchants.map((merchant) => (
             <div
               key={merchant._id}
               className={cn(
@@ -115,6 +132,10 @@ function Dashboard() {
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-white">{merchant.shopName}</h3>
                     <TrustBadge isVerified={merchant.isVerified} showLabel />
+                    <TrustBadge
+                      isVerified={Object.keys(merchant.pricing || {}).length > 0}
+                      variant="fair-price"
+                    />
                   </div>
                   <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
                     <span className={cn(

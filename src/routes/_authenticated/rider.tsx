@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect, useCallback } from 'react'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { useState, useEffect, useCallback, useTransition } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
     ArrowLeft,
@@ -9,14 +9,20 @@ import {
     CheckCircle,
     Truck,
     Navigation,
-    RefreshCw
+    RefreshCw,
+    Wifi,
+    WifiOff
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import {
     getPendingOrdersNearby,
     acceptOrder,
     markDispatched,
-    markDelivered
+    markDelivered,
+    getMyRider,
+    updateRiderStatus,
+    updateRiderLocation,
 } from '@/server/rider.functions'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { toast } from 'sonner'
@@ -29,6 +35,13 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute('/_authenticated/rider')({
     validateSearch: searchSchema,
+    beforeLoad: async () => {
+      const rider = await getMyRider()
+      if (!rider) {
+        throw redirect({ to: '/rider-setup' })
+      }
+      return { riderId: rider._id as string, rider }
+    },
     loaderDeps: ({ search }) => ({ lat: search.lat, lng: search.lng }),
     loader: ({ deps }) =>
         getPendingOrdersNearby({
@@ -37,18 +50,7 @@ export const Route = createFileRoute('/_authenticated/rider')({
     component: RiderDashboard,
 })
 
-interface OrderItem {
-    _id: string
-    userId: string
-    merchantId: string
-    tankBrand: string
-    tankSize: string
-    quantity: number
-    totalPrice: number
-    status: string
-    deliveryAddress: string
-    createdAt?: string
-}
+type OrderItem = Awaited<ReturnType<typeof getPendingOrdersNearby>>[number]
 
 const STATUS_ICONS: Record<string, typeof Package> = {
     pending: Clock,
@@ -57,15 +59,52 @@ const STATUS_ICONS: Record<string, typeof Package> = {
     delivered: Navigation,
 }
 
+/** Format a date/string as a localized time string (PH locale). */
+function formatTime(dateValue: string | Date): string {
+    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue
+    return date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
+}
+
 function RiderDashboard() {
     const initialOrders = Route.useLoaderData()
     const { lat, lng } = Route.useSearch()
     const navigate = Route.useNavigate()
+    const context = Route.useRouteContext()
+    const rider = context.rider as { _id: string; isOnline?: boolean }
 
-    const [orders, setOrders] = useState<OrderItem[]>(initialOrders as OrderItem[])
+    const [orders, setOrders] = useState(initialOrders)
     const [activeOrders, setActiveOrders] = useState<OrderItem[]>([])
-    const [loading, setLoading] = useState(false)
+    const [isFetching, startFetchTransition] = useTransition()
     const [actionLoading, setActionLoading] = useState<string | null>(null)
+    const [isOnline, setIsOnline] = useState(rider?.isOnline ?? false)
+
+    const handleStatusToggle = async (checked: boolean) => {
+        setIsOnline(checked)
+        try {
+            await updateRiderStatus({ data: { isOnline: checked } })
+            toast.success(checked ? 'You are now online!' : 'You are now offline')
+        } catch {
+            setIsOnline(!checked)
+            toast.error('Failed to update status')
+        }
+    }
+
+    const updateLocation = useCallback(async () => {
+        if (!isOnline) return
+        try {
+            await updateRiderLocation({ data: { latitude: lat, longitude: lng } })
+        } catch (e) {
+            console.error('Failed to update location:', e)
+        }
+    }, [lat, lng, isOnline])
+
+    useEffect(() => {
+        if (isOnline) {
+            updateLocation()
+            const interval = setInterval(updateLocation, 30000)
+            return () => clearInterval(interval)
+        }
+    }, [isOnline, updateLocation])
 
     useGeolocation({
         currentLat: lat,
@@ -77,26 +116,29 @@ function RiderDashboard() {
 
     // Manual refresh for polling
     const fetchOrders = useCallback(async () => {
-        setLoading(true)
-        try {
-            const result = await getPendingOrdersNearby({
-                data: {
-                    latitude: lat,
-                    longitude: lng,
-                    radiusMeters: 10000,
-                }
-            })
-            setOrders(result as OrderItem[])
-        } catch {
-            toast.error('Failed to fetch nearby orders')
-        } finally {
-            setLoading(false)
-        }
+        startFetchTransition(async () => {
+            try {
+                const result = await getPendingOrdersNearby({
+                    data: {
+                        latitude: lat,
+                        longitude: lng,
+                        radiusMeters: 10000,
+                    }
+                })
+                setOrders(result)
+            } catch {
+                toast.error('Failed to fetch nearby orders')
+            }
+        })
     }, [lat, lng])
 
-    // Poll every 30 seconds for new orders
+    // Poll every 30 seconds for new orders; pause when tab is hidden
     useEffect(() => {
-        const interval = setInterval(fetchOrders, 30000)
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                fetchOrders()
+            }
+        }, 30000)
         return () => clearInterval(interval)
     }, [fetchOrders])
 
@@ -112,7 +154,7 @@ function RiderDashboard() {
         try {
             const result = await acceptOrder({
                 data: { orderId }
-            }) as { success: boolean; orderId?: string }
+            })
 
             if (result.success) {
                 toast.success('Order accepted!', {
@@ -197,11 +239,6 @@ function RiderDashboard() {
         }
     }
 
-    const formatTime = (dateStr: string) => {
-        const date = new Date(dateStr)
-        return date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
-    }
-
     return (
         <div className="min-h-screen bg-slate-950 p-4">
             <div className="max-w-md mx-auto">
@@ -215,20 +252,35 @@ function RiderDashboard() {
                         </Link>
                         <div>
                             <h1 className="text-xl font-bold text-white">Rider Dashboard</h1>
-                            <p className="text-xs text-slate-400">
-                                📍 {lat.toFixed(4)}°N, {lng.toFixed(4)}°E
+                            <p className="text-xs text-slate-400 flex items-center gap-1">
+                                {isOnline ? (
+                                    <><Wifi size={10} className="text-green-500" /> Online</>
+                                ) : (
+                                    <><WifiOff size={10} className="text-slate-500" /> Offline</>
+                                )}
+                                {' • '}
+                                {lat.toFixed(4)}°N, {lng.toFixed(4)}°E
                             </p>
                         </div>
                     </div>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="border-slate-700"
-                        onClick={fetchOrders}
-                        disabled={loading}
-                    >
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    </Button>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={isOnline}
+                                onCheckedChange={handleStatusToggle}
+                                className="data-[state=checked]:bg-green-500"
+                            />
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="border-slate-700"
+                            onClick={fetchOrders}
+                            disabled={isFetching}
+                        >
+                            <RefreshCw size={16} className={isFetching ? 'animate-spin' : ''} />
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Active Orders */}
