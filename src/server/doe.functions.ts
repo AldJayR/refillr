@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { connectToDatabase } from '@/lib/db.server'
 import { DOEConfigModel } from '@/models/DOEConfig.server'
 import { requireAuthMiddleware } from './middleware'
+import { env } from '@/lib/env.server'
 
 /**
  * Get the current active DOE price configuration.
@@ -31,7 +32,7 @@ export const getDOEPrices = createServerFn({ method: 'GET' })
 export const seedDOEPrices = createServerFn({ method: 'POST' })
   .middleware([requireAuthMiddleware])
   .handler(async () => {
-    if (process.env.NODE_ENV !== 'development') {
+    if (env.NODE_ENV !== 'development') {
       throw new Error('seedDOEPrices is only available in development')
     }
 

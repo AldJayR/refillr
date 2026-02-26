@@ -4,7 +4,7 @@ const EnvSchema = z.object({
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
-  VITE_MAPBOX_TOKEN: z.string().min(1, 'VITE_MAPBOX_TOKEN is required'),
+  MAPBOX_ACCESS_TOKEN: z.string().min(1, 'MAPBOX_ACCESS_TOKEN is required'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 })
 
