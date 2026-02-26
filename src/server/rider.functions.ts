@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { connectToDatabase } from '@/lib/db.server'
 import { OrderModel } from '@/models/Order.server'
-import { GetPendingOrdersSchema, AcceptOrderSchema, CreateRiderSchema } from '@/lib/schemas'
+import { GetPendingOrdersSchema, AcceptOrderSchema, CreateRiderSchema, objectIdRegex } from '@/lib/schemas'
 import { requireAuthMiddleware } from './middleware'
 import { z } from 'zod'
 import { RiderModel } from '@/models/Rider.server'
@@ -63,6 +63,9 @@ export const updateRiderStatus = createServerFn({ method: 'POST' })
     .handler(async ({ data, context }) => {
         await connectToDatabase()
 
+        const isRider = await RiderModel.exists({ userId: context.userId })
+        if (!isRider) return false
+
         const rider = await RiderModel.findOneAndUpdate(
             { userId: context.userId },
             { $set: { isOnline: data.isOnline } },
@@ -83,6 +86,9 @@ export const updateRiderLocation = createServerFn({ method: 'POST' })
     .middleware([requireAuthMiddleware])
     .handler(async ({ data, context }) => {
         await connectToDatabase()
+
+        const isRider = await RiderModel.exists({ userId: context.userId })
+        if (!isRider) return false
 
         const rider = await RiderModel.findOneAndUpdate(
             { userId: context.userId },
@@ -124,7 +130,9 @@ export const getNearbyRiders = createServerFn({ method: 'GET' })
                     $maxDistance: data.radiusMeters
                 }
             }
-        }).lean()
+        })
+        .select('_id firstName lastLocation isOnline')
+        .lean()
 
         return riders.map(rider => ({
             ...rider,
@@ -138,8 +146,11 @@ export const getNearbyRiders = createServerFn({ method: 'GET' })
 export const getPendingOrdersNearby = createServerFn({ method: 'GET' })
     .inputValidator(GetPendingOrdersSchema)
     .middleware([requireAuthMiddleware])
-    .handler(async ({ data }) => {
+    .handler(async ({ data, context }) => {
         await connectToDatabase()
+
+        const isRider = await RiderModel.exists({ userId: context.userId })
+        if (!isRider) return []
 
         const orders = await OrderModel.find({
             status: 'pending',
@@ -177,6 +188,10 @@ export const acceptOrder = createServerFn({ method: 'POST' })
         const order = await OrderModel.findById(data.orderId)
         if (!order) return { success: false, error: 'Order not found' }
 
+        // Verify the caller has a registered rider profile
+        const riderProfile = await RiderModel.exists({ userId: context.userId })
+        if (!riderProfile) return { success: false, error: 'You must register as a rider first' }
+
         if (order.status !== 'pending') {
             return { success: false, error: 'Order is no longer available' }
         }
@@ -197,7 +212,7 @@ export const acceptOrder = createServerFn({ method: 'POST' })
  * Mark an order as dispatched.
  */
 export const markDispatched = createServerFn({ method: 'POST' })
-    .inputValidator(z.string())
+    .inputValidator(z.string().regex(objectIdRegex, 'Invalid order ID format'))
     .middleware([requireAuthMiddleware])
     .handler(async ({ data: orderId, context }) => {
         await connectToDatabase()
@@ -222,7 +237,7 @@ export const markDispatched = createServerFn({ method: 'POST' })
  * Mark an order as delivered.
  */
 export const markDelivered = createServerFn({ method: 'POST' })
-    .inputValidator(z.string())
+    .inputValidator(z.string().regex(objectIdRegex, 'Invalid order ID format'))
     .middleware([requireAuthMiddleware])
     .handler(async ({ data: orderId, context }) => {
         await connectToDatabase()

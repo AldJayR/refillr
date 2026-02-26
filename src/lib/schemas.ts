@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const objectIdRegex = /^[a-fA-F0-9]{24}$/
+export const objectIdRegex = /^[a-fA-F0-9]{24}$/
 
 const coordinateSchema = z.tuple([
   z.number().min(-180).max(180),
@@ -38,8 +38,7 @@ export const CreateOrderSchema = z.object({
   merchantId: z.string().regex(objectIdRegex, 'Invalid merchant ID format'),
   tankBrand: z.enum(['Gasul', 'Solane', 'Petron', 'other']),
   tankSize: z.enum(['2.7kg', '5kg', '11kg', '22kg', '50kg']),
-  quantity: z.number().int().positive().default(1),
-  totalPrice: z.number().positive(),
+  quantity: z.number().int().positive().max(10).default(1),
   deliveryLocation: DeliveryLocationSchema,
   deliveryAddress: z.string().min(1),
   notes: z.string().optional(),
@@ -73,8 +72,10 @@ export const UpdateMerchantPricingSchema = z.object({
   pricing: z.record(z.string(), z.number()),
 })
 
+const polygonCoordinateSchema = z.array(z.number()).min(2).max(2)
+
 export const GetMerchantsInPolygonSchema = z.object({
-  polygon: z.array(z.array(z.number())).min(3),
+  polygon: z.array(polygonCoordinateSchema).min(3).max(500),
 })
 
 // Rider schemas
@@ -93,7 +94,7 @@ export const GetOrderAnalyticsSchema = z.object({
   merchantId: z.string().regex(objectIdRegex, 'Invalid merchant ID format'),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  polygon: z.array(z.array(z.number())).min(3).optional(),
+  polygon: z.array(polygonCoordinateSchema).min(3).max(500).optional(),
 })
 
 // Inventory schemas

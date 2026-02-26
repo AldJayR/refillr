@@ -82,7 +82,6 @@ function NewOrder() {
                     tankBrand: selectedBrand as 'Gasul' | 'Solane' | 'Petron',
                     tankSize: selectedSize as '2.7kg' | '5kg' | '11kg' | '22kg' | '50kg',
                     quantity,
-                    totalPrice: estimatedPrice,
                     deliveryLocation: {
                         type: 'Point' as const,
                         coordinates: coords,

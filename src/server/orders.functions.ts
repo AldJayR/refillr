@@ -24,6 +24,27 @@ export const createRefillRequest = createServerFn({ method: 'POST' })
       throw new Error('Merchant not found')
     }
 
+    // Business logic validations
+    if (!merchant.isOpen) {
+      throw new Error('This merchant is currently closed')
+    }
+
+    if (!merchant.brandsAccepted?.includes(data.tankBrand)) {
+      throw new Error(`This merchant does not carry ${data.tankBrand}`)
+    }
+
+    if (!merchant.tankSizes?.includes(data.tankSize)) {
+      throw new Error(`This merchant does not carry ${data.tankSize} tanks`)
+    }
+
+    // Server-side price calculation — never trust client-supplied prices
+    const pricingKey = `${data.tankBrand}-${data.tankSize}`
+    const unitPrice = merchant.pricing?.[pricingKey]
+    if (!unitPrice || unitPrice <= 0) {
+      throw new Error('Pricing not configured for this item. Please contact the merchant.')
+    }
+    const totalPrice = unitPrice * data.quantity
+
     const deliveryPoint = point(data.deliveryLocation.coordinates)
     const merchantPoint = point(merchant.location.coordinates)
 
@@ -51,6 +72,7 @@ export const createRefillRequest = createServerFn({ method: 'POST' })
       userId: context.userId,
       merchantId: new Types.ObjectId(data.merchantId),
       status: 'pending',
+      totalPrice,
     })
 
     return order._id.toString()
@@ -126,13 +148,34 @@ export const updateOrderStatus = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     await connectToDatabase()
 
-    // Authorization: only the order owner or assigned rider may update status
+    // Authorization: order owner, assigned rider, or merchant owner
     const order = await OrderModel.findById(data.orderId)
     if (!order) return false
 
-    const isOwner = order.userId === context.userId
-    const isRider = order.riderId === context.userId
-    if (!isOwner && !isRider) return false
+    const isOrderOwner = order.userId === context.userId
+    const isAssignedRider = order.riderId === context.userId
+    const merchantOwnerRecord = await MerchantModel.exists({
+      _id: order.merchantId,
+      ownerUserId: context.userId,
+    })
+    const isMerchantOwner = !!merchantOwnerRecord
+
+    if (!isOrderOwner && !isAssignedRider && !isMerchantOwner) return false
+
+    // RBAC: enforce who can perform each status transition
+    if (data.status === 'cancelled') {
+      // Customer may only cancel their own pending orders
+      if (isOrderOwner && order.status !== 'pending') return false
+      // Merchant and rider may cancel at any non-terminal state
+      if (!isOrderOwner && !isMerchantOwner && !isAssignedRider) return false
+    } else if (data.status === 'accepted') {
+      if (!isMerchantOwner) return false
+      if (order.status !== 'pending') return false
+    } else if (['dispatched', 'in_transit', 'delivered'].includes(data.status)) {
+      if (!isAssignedRider) return false
+    } else {
+      return false
+    }
 
     const updateFields: Record<string, unknown> = {
       status: data.status,
@@ -178,10 +221,14 @@ export const getOrderById = createServerFn({ method: 'GET' })
 
     if (!order) return null
 
-    // Only allow the order owner, assigned rider, or merchant to view
+    // Only allow the order owner, assigned rider, or merchant owner to view
     const isOwner = order.userId === context.userId
     const isRider = order.riderId === context.userId
-    if (!isOwner && !isRider) {
+    const merchantOwnerRecord = await MerchantModel.exists({
+      _id: order.merchantId,
+      ownerUserId: context.userId,
+    })
+    if (!isOwner && !isRider && !merchantOwnerRecord) {
       return null
     }
 
