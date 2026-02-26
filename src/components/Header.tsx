@@ -86,19 +86,19 @@ export default function Header() {
             </SignedIn>
             <SignedOut>
               <div className="hidden sm:flex items-center gap-3">
-                <SignInButton mode="modal" signUpFallbackRedirectUrl="/" fallbackRedirectUrl="/">
+                <SignInButton forceRedirectUrl="/" fallbackRedirectUrl="/">
                   <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50">
                     Log in
                   </Button>
                 </SignInButton>
-                <SignUpButton mode="modal" signInFallbackRedirectUrl="/" fallbackRedirectUrl="/">
+                <SignUpButton forceRedirectUrl="/" fallbackRedirectUrl="/">
                   <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-6 font-medium">
                     Sign up
                   </Button>
                 </SignUpButton>
               </div>
               <div className="sm:hidden">
-                <SignInButton mode="modal" signUpFallbackRedirectUrl="/" fallbackRedirectUrl="/">
+                <SignInButton forceRedirectUrl="/" fallbackRedirectUrl="/">
                   <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-4 font-medium">
                     Log in
                   </Button>

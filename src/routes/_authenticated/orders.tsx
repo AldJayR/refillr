@@ -163,7 +163,7 @@ function OrderHistory() {
                     </div>
                 )}
 
-                {/* Completed / Cancelled orders */}}
+                {/* Completed / Cancelled orders */}
                 <div>
                     <h2 className="text-sm font-medium text-slate-400 mb-3">Order History</h2>
                     {completedOrders.length > 0 ? (
