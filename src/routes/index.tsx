@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import Map from '@/components/Map'
 import CommandMenu from '@/components/CommandMenu'
+import type { SearchResult } from '@/components/CommandMenu'
 import TrustBadge from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -47,6 +48,7 @@ function Dashboard() {
   const { lat, lng } = Route.useSearch()
   const navigate = Route.useNavigate()
   const [selectedMerchant, setSelectedMerchant] = useState<string | null>(null)
+  const [activeFilter, setActiveFilter] = useState<SearchResult | null>(null)
 
   useGeolocation({
     currentLat: lat,
@@ -56,13 +58,33 @@ function Dashboard() {
     },
   })
 
-  const mapMarkers = useMemo(() => merchants.map((m) => ({
+  const filteredMerchants = useMemo(() => {
+    if (!activeFilter) return merchants
+    if (activeFilter.type === 'brand') {
+      const parts = activeFilter.label.toLowerCase().split(' ')
+      const brand = parts[0]
+      const size = parts[1]
+      return merchants.filter((m) => {
+        const hasBrand = m.brandsAccepted?.some((b: string) => b.toLowerCase() === brand)
+        const hasSize = size ? m.tankSizes?.some((s: string) => s.toLowerCase() === size) : true
+        return hasBrand && hasSize
+      })
+    }
+    if (activeFilter.type === 'size') {
+      return merchants.filter((m) =>
+        m.tankSizes?.some((s: string) => s.toLowerCase() === activeFilter.label.toLowerCase())
+      )
+    }
+    return merchants
+  }, [merchants, activeFilter])
+
+  const mapMarkers = useMemo(() => filteredMerchants.map((m) => ({
     id: m._id,
     coordinates: m.location.coordinates,
     shopName: m.shopName,
     isVerified: m.isVerified,
     isOpen: m.isOpen
-  })), [merchants])
+  })), [filteredMerchants])
 
   const riderMarkers = useMemo(() => riders
     .filter((r) => r.lastLocation?.coordinates)
@@ -84,8 +106,25 @@ function Dashboard() {
         <div className="absolute top-4 left-4 right-4 z-10">
           <div className="max-w-md mx-auto">
             <CommandMenu
-              onSelect={(result) => console.log('Selected:', result)}
+              onSelect={(result) => setActiveFilter(result)}
             />
+            {activeFilter && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+                  {activeFilter.label}
+                  <button
+                    onClick={() => setActiveFilter(null)}
+                    className="ml-1 hover:text-white"
+                    aria-label="Clear filter"
+                  >
+                    ×
+                  </button>
+                </span>
+                <span className="text-xs text-slate-500">
+                  {filteredMerchants.length} result{filteredMerchants.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -116,9 +155,11 @@ function Dashboard() {
         </div>
 
         <div className="grid gap-3">
-          {merchants.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">No dealers found in your area.</div>
-          ) : merchants.map((merchant) => (
+          {filteredMerchants.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
+              {activeFilter ? `No dealers carry ${activeFilter.label} in your area.` : 'No dealers found in your area.'}
+            </div>
+          ) : filteredMerchants.map((merchant) => (
             <div
               key={merchant._id}
               className={cn(

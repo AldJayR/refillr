@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Search, Flame, Package, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface SearchResult {
+export interface SearchResult {
   id: string
   type: 'brand' | 'size' | 'location'
   label: string
