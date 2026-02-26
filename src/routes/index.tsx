@@ -4,10 +4,8 @@ import { Link } from '@tanstack/react-router'
 import {
   Flame,
   MapPin,
-  Clock,
-  Phone,
   Plus,
-  ArrowRight
+  X
 } from 'lucide-react'
 import Map from '@/components/Map'
 import CommandMenu from '@/components/CommandMenu'
@@ -97,131 +95,169 @@ function Dashboard() {
     })), [riders])
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="relative h-[60vh]">
-        <Map
-          markers={mapMarkers}
-          riderMarkers={riderMarkers}
-          onMarkerClick={(id) => setSelectedMerchant(id)}
-        />
-
-        <div className="absolute top-4 left-4 right-4 z-10">
-          <div className="max-w-md mx-auto">
-            <CommandMenu
-              onSelect={(result) => setActiveFilter(result)}
-            />
-            {activeFilter && (
-              <div className="mt-2">
-                <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full px-3 py-1 inline-flex items-center gap-1">
-                  {activeFilter.label}
-                  <span className="text-orange-300/70 mx-1">·</span>
-                  {filteredMerchants.length} result{filteredMerchants.length !== 1 ? 's' : ''}
-                  <button
-                    onClick={() => setActiveFilter(null)}
-                    className="ml-1 hover:text-white"
-                    aria-label="Clear filter"
-                  >
-                    ×
-                  </button>
-                </span>
-              </div>
-            )}
+    <div className="min-h-screen bg-slate-950 flex flex-col">
+      {/* Hero Section */}
+      <div className="relative pt-20 pb-16 md:pt-32 md:pb-24 px-4 overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium mb-6 animate-fade-in">
+            <Flame size={14} />
+            <span>Fastest LPG Delivery in Metro Manila</span>
           </div>
-        </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold font-heading text-white mb-6 tracking-tight animate-fade-in" style={{ animationDelay: '100ms' }}>
+            Never run out of gas <br className="hidden md:block" />
+            <span className="text-gradient">mid-cooking again.</span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '200ms' }}>
+            Order verified Gasul, Solane, and Petron refills from trusted local dealers. Delivered to your door in minutes.
+          </p>
 
-        <div className="absolute bottom-4 left-4 right-4 z-10">
-          <div className="bg-slate-900/90 backdrop-blur-sm rounded-xl p-4 border border-slate-800">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Flame className="text-orange-500" size={20} />
-                <span className="text-white font-bold font-heading">Refillr</span>
-              </div>
-              <Link to="/order/new">
-                <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
-                  <Plus size={16} />
-                  New Order
-                </Button>
-              </Link>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
+            <Link to="/order/new" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white h-14 px-8 text-lg rounded-xl glow-orange">
+                <Plus size={20} className="mr-2" />
+                Order Refill Now
+              </Button>
+            </Link>
+            <Link to="/merchants" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-8 text-lg rounded-xl border-slate-700 hover:bg-slate-800 text-white">
+                View Local Dealers
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Nearby Dealers</h2>
-          <Link to="/merchants" className="text-orange-500 text-sm flex items-center gap-1">
-            View all <ArrowRight size={14} />
-          </Link>
+      {/* Main Content Area */}
+      <div className="flex-1 max-w-7xl mx-auto w-full px-4 pb-24 grid lg:grid-cols-[1fr_400px] gap-8">
+        
+        {/* Left Column: Map & Search */}
+        <div className="space-y-6 flex flex-col h-[600px] lg:h-auto min-h-[500px]">
+          <div className="relative flex-1 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shadow-black/50">
+            <Map
+              markers={mapMarkers}
+              riderMarkers={riderMarkers}
+              onMarkerClick={(id) => setSelectedMerchant(id)}
+            />
+            
+            {/* Floating Search Bar */}
+            <div className="absolute top-4 left-4 right-4 z-10">
+              <div className="max-w-md mx-auto">
+                <CommandMenu
+                  onSelect={(result) => setActiveFilter(result)}
+                  className="shadow-2xl"
+                />
+                {activeFilter && (
+                  <div className="mt-2 animate-fade-in">
+                    <span className="text-xs bg-slate-900/90 backdrop-blur-md text-orange-400 border border-orange-500/30 rounded-full px-3 py-1.5 inline-flex items-center gap-1 shadow-lg">
+                      {activeFilter.label}
+                      <span className="text-slate-600 mx-1">·</span>
+                      <span className="text-slate-300">{filteredMerchants.length} result{filteredMerchants.length !== 1 ? 's' : ''}</span>
+                      <button
+                        onClick={() => setActiveFilter(null)}
+                        className="ml-2 text-slate-400 hover:text-white transition-colors"
+                        aria-label="Clear filter"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid gap-3">
-          {filteredMerchants.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
-              {activeFilter ? `No dealers carry ${activeFilter.label} in your area.` : 'No dealers found in your area.'}
-            </div>
-          ) : filteredMerchants.map((merchant) => (
-            <div
-              key={merchant._id}
-              className={cn(
-                "glass-card rounded-xl p-4 hover-scale cursor-pointer group",
-                selectedMerchant === merchant._id ? "border-orange-500 ring-1 ring-orange-500/50" : "border-slate-800"
-              )}
-              onClick={() => setSelectedMerchant(merchant._id)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-white">{merchant.shopName}</h3>
-                    <TrustBadge isVerified={merchant.isVerified} showLabel />
-                    <TrustBadge
-                      isVerified={Object.keys(merchant.pricing || {}).length > 0}
-                      variant="fair-price"
-                    />
-                  </div>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
-                    <span className={cn(
-                      "flex items-center gap-1",
-                      merchant.isOpen ? "text-green-400" : "text-red-400"
-                    )}>
-                      <Clock size={14} />
-                      {merchant.isOpen ? 'Open' : 'Closed'}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MapPin size={14} />
-                      {merchant.location?.coordinates
-                        ? formatDistance(lat, lng, merchant.location.coordinates)
-                        : 'Nearby'}
-                    </span>
+        {/* Right Column: Dealers List */}
+        <div className="flex flex-col h-[600px] lg:h-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <MapPin className="text-orange-500" size={20} />
+              Nearby Dealers
+            </h2>
+            <span className="text-sm text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
+              {filteredMerchants.length} found
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+            {filteredMerchants.length === 0 ? (
+              <div className="text-center py-12 px-4 border border-dashed border-slate-800 rounded-2xl bg-slate-900/50">
+                <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <MapPin className="text-slate-500" size={24} />
+                </div>
+                <p className="text-slate-400 font-medium">
+                  {activeFilter ? `No dealers carry ${activeFilter.label} nearby.` : 'No dealers found in your area.'}
+                </p>
+                {activeFilter && (
+                  <Button 
+                    variant="link" 
+                    onClick={() => setActiveFilter(null)}
+                    className="text-orange-500 mt-2"
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+            ) : filteredMerchants.map((merchant) => (
+              <div
+                key={merchant._id}
+                className={cn(
+                  "glass-card rounded-xl p-5 transition-all cursor-pointer group",
+                  selectedMerchant === merchant._id 
+                    ? "border-orange-500 bg-orange-500/5 shadow-[0_0_30px_-10px_rgba(249,115,22,0.2)]" 
+                    : "border-slate-800 hover:border-slate-700 hover:bg-slate-800/30"
+                )}
+                onClick={() => setSelectedMerchant(merchant._id)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-white text-lg group-hover:text-orange-400 transition-colors">
+                      {merchant.shopName}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1.5 text-sm text-slate-400">
+                      <span className={cn(
+                        "flex items-center gap-1.5 font-medium",
+                        merchant.isOpen ? "text-emerald-400" : "text-rose-400"
+                      )}>
+                        <span className={cn("w-2 h-2 rounded-full", merchant.isOpen ? "bg-emerald-400" : "bg-rose-400")} />
+                        {merchant.isOpen ? 'Open' : 'Closed'}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin size={14} />
+                        {merchant.location?.coordinates
+                          ? formatDistance(lat, lng, merchant.location.coordinates)
+                          : 'Nearby'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <Button size="sm" variant="outline" className="border-slate-700 hover:bg-slate-800">
-                  <Phone size={14} />
-                </Button>
-              </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
-                {merchant.brandsAccepted?.map((brand: string) => (
-                  <span
-                    key={brand}
-                    className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300"
-                  >
-                    {brand}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {merchant.brandsAccepted?.map((brand: string) => (
+                    <span
+                      key={brand}
+                      className="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-md text-xs font-medium text-slate-300"
+                    >
+                      {brand}
+                    </span>
+                  ))}
+                </div>
 
-        <div className="glass-card bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl p-4 border-orange-500/20">
-          <h3 className="font-bold font-heading text-white mb-2 flex items-center gap-2">
-            <TrustBadge isVerified={true} />
-            Safety First
-          </h3>
-          <p className="text-sm text-slate-400">
-            Look for the <span className="text-green-400 font-medium">DOE Verified</span> badge to ensure you're getting safe, properly maintained gas tanks.
-          </p>
+                <div className="flex items-center gap-2 pt-3 border-t border-slate-800/50">
+                  <TrustBadge isVerified={merchant.isVerified} showLabel />
+                  <TrustBadge
+                    isVerified={Object.keys(merchant.pricing || {}).length > 0}
+                    variant="fair-price"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

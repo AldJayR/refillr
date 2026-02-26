@@ -27,6 +27,7 @@ import {
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { formatTime } from '@/lib/utils'
 
 const searchSchema = z.object({
     lat: z.number().optional().default(14.5995),
@@ -57,12 +58,6 @@ const STATUS_ICONS: Record<string, typeof Package> = {
     accepted: CheckCircle,
     dispatched: Truck,
     delivered: Navigation,
-}
-
-/** Format a date/string as a localized time string (PH locale). */
-function formatTime(dateValue: string | Date): string {
-    const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue
-    return date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })
 }
 
 function RiderDashboard() {

@@ -68,15 +68,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar {
+.custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-slate-950;
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb {
   @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
 }
 

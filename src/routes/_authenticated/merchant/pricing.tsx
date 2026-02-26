@@ -9,9 +9,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { DollarSign, Save, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const BRANDS = ['Gasul', 'Solane', 'Petron'] as const
-const SIZES = ['2.7kg', '5kg', '11kg', '22kg', '50kg'] as const
+import { TANK_BRANDS as BRANDS, TANK_SIZES as SIZES } from '@/lib/constants'
 
 export const Route = createFileRoute('/_authenticated/merchant/pricing')({
   loader: async ({ context }) => {

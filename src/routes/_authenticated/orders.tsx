@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils'
+import { cn, formatDateTime } from '@/lib/utils'
 import { getUserOrders, cancelOrder } from '@/server/orders.functions'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState } from 'react'
@@ -64,11 +64,6 @@ function OrderHistory() {
         }
     }
 
-    const formatTime = (dateStr: string | Date) => {
-        const date = new Date(dateStr)
-        return date.toLocaleString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-    }
-
     return (
         <div className="min-h-screen bg-slate-950 p-4">
             <div className="max-w-md mx-auto">
@@ -109,7 +104,7 @@ function OrderHistory() {
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-2 text-sm text-slate-400">
                                             <Clock size={14} />
-                                            {order.createdAt ? formatTime(order.createdAt) : 'Just now'}
+                                            {order.createdAt ? formatDateTime(order.createdAt) : 'Just now'}
                                         </div>
                                         <span className="text-orange-500 font-semibold">₱{order.totalPrice}</span>
                                     </div>
@@ -158,7 +153,7 @@ function OrderHistory() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 text-sm text-slate-400">
                                             <Clock size={14} />
-                                            {order.createdAt ? formatTime(order.createdAt) : 'Just now'}
+                                            {order.createdAt ? formatDateTime(order.createdAt) : 'Just now'}
                                         </div>
                                         <span className="text-orange-500 font-semibold">₱{order.totalPrice}</span>
                                     </div>
@@ -168,7 +163,7 @@ function OrderHistory() {
                     </div>
                 )}
 
-                {/* Completed / Cancelled orders */}
+                {/* Completed / Cancelled orders */}}
                 <div>
                     <h2 className="text-sm font-medium text-slate-400 mb-3">Order History</h2>
                     {completedOrders.length > 0 ? (
@@ -196,7 +191,7 @@ function OrderHistory() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 text-sm text-slate-400">
                                             <Clock size={14} />
-                                            {order.createdAt ? formatTime(order.createdAt) : 'Completed'}
+                                            {order.createdAt ? formatDateTime(order.createdAt) : 'Completed'}
                                         </div>
                                         <span className="text-orange-500 font-semibold">₱{order.totalPrice}</span>
                                     </div>

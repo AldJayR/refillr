@@ -8,7 +8,9 @@ import {
     Flame,
     Clock,
     Check,
-    AlertCircle
+    AlertCircle,
+    Store,
+    ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,37 +23,60 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { createRefillRequest } from '@/server/orders.functions'
+import { getMerchantById, getNearbyMerchants } from '@/server/merchants.functions'
 import { toast } from 'sonner'
+import { z } from 'zod'
+import { TANK_BRANDS, TANK_SIZES, DEFAULT_LOCATION, DEFAULT_SEARCH_RADIUS_METERS } from '@/lib/constants'
+
+const searchSchema = z.object({
+    merchantId: z.string().optional(),
+    lat: z.number().optional().default(DEFAULT_LOCATION.lat),
+    lng: z.number().optional().default(DEFAULT_LOCATION.lng),
+})
+
+type Merchant = NonNullable<Awaited<ReturnType<typeof getMerchantById>>>
 
 export const Route = createFileRoute('/_authenticated/order/new')({
+    validateSearch: searchSchema,
+    loader: async ({ location }) => {
+        const { merchantId, lat, lng } = location.search as z.infer<typeof searchSchema>
+        const [preselectedMerchant, nearbyMerchants] = await Promise.all([
+            merchantId ? getMerchantById({ data: { merchantId } }) : Promise.resolve(null),
+            getNearbyMerchants({ data: { latitude: lat ?? DEFAULT_LOCATION.lat, longitude: lng ?? DEFAULT_LOCATION.lng, radiusMeters: DEFAULT_SEARCH_RADIUS_METERS } }),
+        ])
+        return { preselectedMerchant, nearbyMerchants }
+    },
     component: NewOrder,
 })
 
-const TANK_BRANDS = ['Gasul', 'Solane', 'Petron'] as const
-const TANK_SIZES = ['2.7kg', '5kg', '11kg', '22kg', '50kg'] as const
-
-const PRICE_MAP: Record<string, Record<string, number>> = {
-    '2.7kg': { Gasul: 350, Solane: 340, Petron: 330 },
-    '5kg': { Gasul: 600, Solane: 580, Petron: 570 },
-    '11kg': { Gasul: 1200, Solane: 1150, Petron: 1100 },
-    '22kg': { Gasul: 2200, Solane: 2100, Petron: 2050 },
-    '50kg': { Gasul: 4800, Solane: 4600, Petron: 4500 },
-}
-
 function NewOrder() {
-    const [step, setStep] = useState(1)
+    const { preselectedMerchant, nearbyMerchants } = Route.useLoaderData()
+    const { lat, lng } = Route.useSearch()
+
+    const [step, setStep] = useState(preselectedMerchant ? 1 : 0)
+    const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(
+        (preselectedMerchant as Merchant | null) ?? null
+    )
     const [selectedBrand, setSelectedBrand] = useState('')
     const [selectedSize, setSelectedSize] = useState('')
     const [quantity, setQuantity] = useState(1)
     const [deliveryAddress, setDeliveryAddress] = useState('')
-    const [deliveryCoords, setDeliveryCoords] = useState<[number, number] | null>(null)
+    const [deliveryCoords, setDeliveryCoords] = useState<[number, number] | null>(
+        lat && lng ? [lng, lat] : null
+    )
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [createdOrderId, setCreatedOrderId] = useState<string | null>(null)
 
-    const unitPrice = selectedBrand && selectedSize
-        ? PRICE_MAP[selectedSize]?.[selectedBrand] ?? 0
-        : 0
+    // Derive available brands/sizes and real prices from selected merchant
+    const availableBrands = selectedMerchant?.brandsAccepted ?? (TANK_BRANDS as unknown as string[])
+    const availableSizes = selectedMerchant?.tankSizes ?? (TANK_SIZES as unknown as string[])
+
+    const getPriceKey = (brand: string, size: string) => `${brand}-${size}`
+    const unitPrice =
+        selectedMerchant && selectedBrand && selectedSize
+            ? (selectedMerchant.pricing?.[getPriceKey(selectedBrand, selectedSize)] ?? 0)
+            : 0
     const estimatedPrice = unitPrice * quantity
 
     const handleUseCurrentLocation = () => {
@@ -69,23 +94,23 @@ function NewOrder() {
     }
 
     const handleSubmit = async () => {
+        if (!selectedMerchant) {
+            setError('No merchant selected. Please go back and select a dealer.')
+            return
+        }
         setIsSubmitting(true)
         setError(null)
 
         try {
-            // Use delivery coordinates or fallback to Manila default
-            const coords: [number, number] = deliveryCoords ?? [120.9842, 14.5995]
+            const coords: [number, number] = deliveryCoords ?? [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat]
 
             const orderId = await createRefillRequest({
                 data: {
-                    merchantId: '000000000000000000000000', // In production, use selected merchant
+                    merchantId: selectedMerchant._id,
                     tankBrand: selectedBrand as 'Gasul' | 'Solane' | 'Petron',
                     tankSize: selectedSize as '2.7kg' | '5kg' | '11kg' | '22kg' | '50kg',
                     quantity,
-                    deliveryLocation: {
-                        type: 'Point' as const,
-                        coordinates: coords,
-                    },
+                    deliveryLocation: { type: 'Point' as const, coordinates: coords },
                     deliveryAddress,
                 }
             })
@@ -123,13 +148,13 @@ function NewOrder() {
                 </div>
 
                 <div className="flex items-center justify-between mb-8">
-                    {[1, 2, 3].map((s) => (
+                    {[0, 1, 2, 3].map((s) => (
                         <div key={s} className="flex items-center">
                             <div className={cn(
                                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                                 step >= s ? "bg-orange-500 text-white" : "bg-slate-800 text-slate-400"
                             )}>
-                                {step > s ? <Check size={16} /> : s}
+                                {step > s ? <Check size={16} /> : s + 1}
                             </div>
                             {s < 3 && (
                                 <div className={cn(
@@ -148,6 +173,67 @@ function NewOrder() {
                     </div>
                 )}
 
+                {step === 0 && (
+                    <div className="space-y-6">
+                        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Store size={20} className="text-orange-500" />
+                                Select Dealer
+                            </h2>
+
+                            {nearbyMerchants.length === 0 ? (
+                                <div className="text-sm text-slate-400">
+                                    No nearby dealers found. Please go back and try another area.
+                                </div>
+                            ) : (
+                                <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                                    {nearbyMerchants.map((merchant) => (
+                                        <button
+                                            key={merchant._id}
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedMerchant(merchant as Merchant)
+                                                setSelectedBrand('')
+                                                setSelectedSize('')
+                                                setError(null)
+                                            }}
+                                            className={cn(
+                                                'w-full text-left rounded-lg border p-3 transition-colors',
+                                                selectedMerchant?._id === merchant._id
+                                                    ? 'border-orange-500 bg-orange-500/10'
+                                                    : 'border-slate-700 bg-slate-800/60 hover:bg-slate-800'
+                                            )}
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <p className="text-white font-medium">{merchant.shopName}</p>
+                                                    <p className="text-xs text-slate-400 mt-1">
+                                                        {(merchant.address || 'Address not listed')}
+                                                    </p>
+                                                </div>
+                                                {merchant.isVerified && (
+                                                    <span className="inline-flex items-center gap-1 text-xs text-emerald-400">
+                                                        <ShieldCheck size={14} />
+                                                        Verified
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <Button
+                            className="w-full bg-orange-500 hover:bg-orange-600"
+                            disabled={!selectedMerchant}
+                            onClick={() => setStep(1)}
+                        >
+                            Continue
+                        </Button>
+                    </div>
+                )}
+
                 {step === 1 && (
                     <div className="space-y-6">
                         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
@@ -155,6 +241,13 @@ function NewOrder() {
                                 <Package size={20} className="text-orange-500" />
                                 Select Tank
                             </h2>
+
+                            {selectedMerchant && (
+                                <div className="mb-4 rounded-lg bg-slate-800/60 border border-slate-700 p-3">
+                                    <p className="text-xs text-slate-400">Selected dealer</p>
+                                    <p className="text-sm text-white font-medium">{selectedMerchant.shopName}</p>
+                                </div>
+                            )}
 
                             <div className="space-y-4">
                                 <div>
@@ -164,7 +257,7 @@ function NewOrder() {
                                             <SelectValue placeholder="Select brand" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {TANK_BRANDS.map((brand) => (
+                                            {availableBrands.map((brand) => (
                                                 <SelectItem key={brand} value={brand}>{brand}</SelectItem>
                                             ))}
                                         </SelectContent>
@@ -178,7 +271,7 @@ function NewOrder() {
                                             <SelectValue placeholder="Select size" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {TANK_SIZES.map((size) => (
+                                            {availableSizes.map((size) => (
                                                 <SelectItem key={size} value={size}>{size}</SelectItem>
                                             ))}
                                         </SelectContent>
@@ -225,7 +318,7 @@ function NewOrder() {
 
                         <Button
                             className="w-full bg-orange-500 hover:bg-orange-600"
-                            disabled={!selectedBrand || !selectedSize}
+                            disabled={!selectedBrand || !selectedSize || unitPrice <= 0}
                             onClick={() => setStep(2)}
                         >
                             Continue

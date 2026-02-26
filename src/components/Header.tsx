@@ -7,47 +7,105 @@ import {
   UserButton,
 } from '@clerk/tanstack-react-start'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Home, Menu, X, Truck, User, ShoppingBag, ListChecks, Flame, Store } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Button } from './ui/button'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <>
-      <header className="p-4 flex items-center glass-card text-white shadow-lg sticky top-0 z-40">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-slate-800/50 rounded-lg transition-colors hover-scale"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="ml-4 text-xl font-bold font-heading flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <Flame className="text-orange-500" size={20} />
-            <span className="text-gradient">Refillr</span>
-          </Link>
-        </h1>
-        <div className="ml-auto flex items-center gap-4">
-          <SignedIn>
-            <div className="hover-scale">
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          </SignedIn>
-          <SignedOut>
-            <SignInButton mode="modal" signUpFallbackRedirectUrl="/" fallbackRedirectUrl="/">
-              <button className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">
-                Sign In
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal" signInFallbackRedirectUrl="/" fallbackRedirectUrl="/">
-              <button className="px-4 py-2 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all glow-orange hover-scale">
-                Sign Up
-              </button>
-            </SignUpButton>
-          </SignedOut>
+      <header 
+        className={cn(
+          "fixed top-0 left-0 right-0 z-40 transition-all duration-300 border-b",
+          isScrolled 
+            ? "bg-slate-950/80 backdrop-blur-md border-slate-800/50 shadow-lg" 
+            : "bg-transparent border-transparent"
+        )}
+      >
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsOpen(true)}
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors md:hidden"
+              aria-label="Open menu"
+            >
+              <Menu size={24} />
+            </button>
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:shadow-orange-500/40 transition-all">
+                <Flame className="text-white" size={20} />
+              </div>
+              <span className="text-xl font-bold font-heading text-white tracking-tight hidden sm:block">Refillr</span>
+            </Link>
+          </div>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link to="/merchants" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+              Find Dealers
+            </Link>
+            <Link to="/merchant-setup" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+              For Merchants
+            </Link>
+            <Link to="/rider-setup" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+              For Riders
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <SignedIn>
+              <div className="hidden md:block">
+                <Link to="/order/new">
+                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6 shadow-lg shadow-orange-500/20">
+                    Order Now
+                  </Button>
+                </Link>
+              </div>
+              <div className="hover-scale">
+                <UserButton 
+                  afterSignOutUrl="/" 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-9 h-9 border-2 border-slate-800 hover:border-orange-500 transition-colors"
+                    }
+                  }}
+                />
+              </div>
+            </SignedIn>
+            <SignedOut>
+              <div className="hidden sm:flex items-center gap-3">
+                <SignInButton mode="modal" signUpFallbackRedirectUrl="/" fallbackRedirectUrl="/">
+                  <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50">
+                    Log in
+                  </Button>
+                </SignInButton>
+                <SignUpButton mode="modal" signInFallbackRedirectUrl="/" fallbackRedirectUrl="/">
+                  <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-6 font-medium">
+                    Sign up
+                  </Button>
+                </SignUpButton>
+              </div>
+              <div className="sm:hidden">
+                <SignInButton mode="modal" signUpFallbackRedirectUrl="/" fallbackRedirectUrl="/">
+                  <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-4 font-medium">
+                    Log in
+                  </Button>
+                </SignInButton>
+              </div>
+            </SignedOut>
+          </div>
         </div>
       </header>
 
