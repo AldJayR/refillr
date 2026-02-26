@@ -109,9 +109,11 @@ function Dashboard() {
               onSelect={(result) => setActiveFilter(result)}
             />
             {activeFilter && (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full px-3 py-1 flex items-center gap-1">
+              <div className="mt-2">
+                <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full px-3 py-1 inline-flex items-center gap-1">
                   {activeFilter.label}
+                  <span className="text-orange-300/70 mx-1">·</span>
+                  {filteredMerchants.length} result{filteredMerchants.length !== 1 ? 's' : ''}
                   <button
                     onClick={() => setActiveFilter(null)}
                     className="ml-1 hover:text-white"
@@ -119,9 +121,6 @@ function Dashboard() {
                   >
                     ×
                   </button>
-                </span>
-                <span className="text-xs text-slate-500">
-                  {filteredMerchants.length} result{filteredMerchants.length !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
