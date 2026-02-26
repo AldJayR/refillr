@@ -61,9 +61,9 @@ function Dashboard() {
   const filteredMerchants = useMemo(() => {
     if (!activeFilter) return merchants
     if (activeFilter.type === 'brand') {
-      const parts = activeFilter.label.toLowerCase().split(' ')
-      const brand = parts[0]
-      const size = parts[1]
+      // Use structured fields when present; fall back to label parsing for backward compat
+      const brand = (activeFilter.brandName ?? activeFilter.label.split(' ')[0]).toLowerCase()
+      const size = activeFilter.sizeLabel?.toLowerCase()
       return merchants.filter((m) => {
         const hasBrand = m.brandsAccepted?.some((b: string) => b.toLowerCase() === brand)
         const hasSize = size ? m.tankSizes?.some((s: string) => s.toLowerCase() === size) : true
@@ -71,10 +71,12 @@ function Dashboard() {
       })
     }
     if (activeFilter.type === 'size') {
+      const size = (activeFilter.sizeLabel ?? activeFilter.label).toLowerCase()
       return merchants.filter((m) =>
-        m.tankSizes?.some((s: string) => s.toLowerCase() === activeFilter.label.toLowerCase())
+        m.tankSizes?.some((s: string) => s.toLowerCase() === size)
       )
     }
+    // location filtering not yet implemented
     return merchants
   }, [merchants, activeFilter])
 

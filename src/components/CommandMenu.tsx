@@ -7,6 +7,9 @@ export interface SearchResult {
   type: 'brand' | 'size' | 'location'
   label: string
   sublabel?: string
+  /** Structured filter fields — use these instead of parsing `label` */
+  brandName?: string
+  sizeLabel?: string
 }
 
 interface CommandMenuProps {
@@ -16,12 +19,12 @@ interface CommandMenuProps {
 }
 
 const POPULAR_SEARCHES: SearchResult[] = [
-  { id: '1', type: 'brand', label: 'Gasul 11kg', sublabel: 'Most popular' },
-  { id: '2', type: 'brand', label: 'Solane 2.7kg', sublabel: 'Compact size' },
-  { id: '3', type: 'brand', label: 'Petron 11kg', sublabel: 'Trusted brand' },
-  { id: '4', type: 'size', label: '11kg', sublabel: 'Standard household' },
-  { id: '5', type: 'size', label: '5kg', sublabel: 'Small household' },
-  { id: '6', type: 'size', label: '22kg', sublabel: 'Commercial' },
+  { id: '1', type: 'brand', label: 'Gasul 11kg', sublabel: 'Most popular', brandName: 'Gasul', sizeLabel: '11kg' },
+  { id: '2', type: 'brand', label: 'Solane 2.7kg', sublabel: 'Compact size', brandName: 'Solane', sizeLabel: '2.7kg' },
+  { id: '3', type: 'brand', label: 'Petron 11kg', sublabel: 'Trusted brand', brandName: 'Petron', sizeLabel: '11kg' },
+  { id: '4', type: 'size', label: '11kg', sublabel: 'Standard household', sizeLabel: '11kg' },
+  { id: '5', type: 'size', label: '5kg', sublabel: 'Small household', sizeLabel: '5kg' },
+  { id: '6', type: 'size', label: '22kg', sublabel: 'Commercial', sizeLabel: '22kg' },
 ]
 
 export default function CommandMenu({
