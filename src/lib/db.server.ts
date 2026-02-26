@@ -1,7 +1,6 @@
-import { MongoClient } from 'mongodb'
 import mongoose from 'mongoose'
+import { env } from '@/lib/env.server'
 
-let client: MongoClient | null = null
 let isConnected = false
 
 export async function connectToDatabase(): Promise<typeof mongoose> {
@@ -9,9 +8,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     return mongoose
   }
 
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017'
-
-  await mongoose.connect(uri, {
+  await mongoose.connect(env.MONGODB_URI, {
     dbName: 'refillr',
   })
 
@@ -21,9 +18,8 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 }
 
 export async function closeDatabase(): Promise<void> {
-  if (client) {
-    await client.close()
-    client = null
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect()
     isConnected = false
   }
 }
