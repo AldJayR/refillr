@@ -51,7 +51,7 @@ export class Order {
   @prop({ required: true, type: () => String, enum: ['pending', 'accepted', 'dispatched', 'in_transit', 'delivered', 'cancelled'], default: 'pending' })
   public status!: OrderStatus
 
-  @prop({ required: true, type: () => DeliveryLocation })
+  @prop({ required: true, type: () => DeliveryLocation, index: '2dsphere' })
   public deliveryLocation!: DeliveryLocation
 
   @prop({ required: true, type: () => String })
