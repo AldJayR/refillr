@@ -3,6 +3,7 @@ import { getModelForClass } from '@typegoose/typegoose'
 import { Types } from 'mongoose'
 
 @modelOptions({
+  schemaOptions: { _id: false },
   options: {
     allowMixed: Severity.ALLOW,
   },

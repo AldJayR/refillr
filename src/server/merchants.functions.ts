@@ -105,7 +105,7 @@ export const createMerchant = createServerFn({ method: 'POST' })
       // Check if user already has a merchant profile
       const existing = await MerchantModel.findOne({ ownerUserId: context.userId })
       if (existing) {
-        return { success: false as const, error: 'You already have a merchant profile' }
+        throw new Error('You already have a merchant profile')
       }
 
       const merchant = await MerchantModel.create({

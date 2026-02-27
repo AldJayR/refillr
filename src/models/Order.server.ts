@@ -7,6 +7,7 @@ export type TankBrand = 'Gasul' | 'Solane' | 'Petron' | 'other'
 export type TankSize = '2.7kg' | '5kg' | '11kg' | '22kg' | '50kg'
 
 @modelOptions({
+  schemaOptions: { _id: false },
   options: {
     allowMixed: Severity.ALLOW,
   },

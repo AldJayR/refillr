@@ -1,6 +1,7 @@
 import { prop, modelOptions, Severity, getModelForClass } from '@typegoose/typegoose'
 
 @modelOptions({
+  schemaOptions: { _id: false },
   options: {
     allowMixed: Severity.ALLOW,
   },
