@@ -9,6 +9,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
 const config = defineConfig({
+  esbuild: {
+    jsxDev: false,
+  },
   optimizeDeps: {
     include: [
       '@clerk/tanstack-react-start',
@@ -18,7 +21,28 @@ const config = defineConfig({
   },
   plugins: [
     devtools(),
-    nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+    nitro({
+      rollupConfig: {
+        external: [/^@sentry\//],
+        output: {
+          plugins: [{
+            name: 'fix-json-imports',
+            renderChunk(code: string) {
+              if (!code.includes('.json"')) return null
+              return code
+                .replace(
+                  /import\s+([\w$]+)\s+from\s+"([^"]+\.json)"/g,
+                  'import $1 from "$2" with { type: "json" }',
+                )
+                .replace(
+                  /import\s+"([^"]+\.json)"/g,
+                  'import "$1" with { type: "json" }',
+                )
+            },
+          }],
+        },
+      },
+    }),
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
     tanstackStart(),

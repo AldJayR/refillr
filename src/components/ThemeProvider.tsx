@@ -1,31 +1,33 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { useState, useEffect, createContext, useContext } from "react"
+
+const isBrowser = typeof window !== 'undefined'
 
 type Theme = "dark" | "light"
-
-type ThemeProviderProps = {
-  children: React.ReactNode
-  defaultTheme?: Theme
-  storageKey?: string
-}
 
 type ThemeProviderState = {
   theme: Theme
   setTheme: (theme: Theme) => void
 }
 
-const initialState: ThemeProviderState = {
+const ThemeProviderContext = createContext<ThemeProviderState>({
   theme: "dark",
   setTheme: () => null,
+})
+
+export function useTheme() {
+  const context = useContext(ThemeProviderContext)
+  return context
 }
 
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
-
-export function ThemeProvider({
-  children,
-  defaultTheme = "dark",
-  storageKey = "vite-ui-theme",
-  ...props
-}: ThemeProviderProps) {
+function ThemeProviderInner({ 
+  children, 
+  defaultTheme = "dark", 
+  storageKey = "vite-ui-theme" 
+}: { 
+  children: React.ReactNode
+  defaultTheme?: Theme
+  storageKey?: string
+}) {
   const [theme, setTheme] = useState<Theme>(defaultTheme)
 
   useEffect(() => {
@@ -37,12 +39,11 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = window.document.documentElement
-
     root.classList.remove("light", "dark")
     root.classList.add(theme)
   }, [theme])
 
-  const value = {
+  const value: ThemeProviderState = {
     theme,
     setTheme: (newTheme: Theme) => {
       localStorage.setItem(storageKey, newTheme)
@@ -51,17 +52,26 @@ export function ThemeProvider({
   }
 
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <ThemeProviderContext.Provider value={value}>
       {children}
     </ThemeProviderContext.Provider>
   )
 }
 
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext)
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false)
 
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider")
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  return context
+  if (!isBrowser || !mounted) {
+    return (
+      <ThemeProviderContext.Provider value={{ theme: "dark", setTheme: () => null }}>
+        {children}
+      </ThemeProviderContext.Provider>
+    )
+  }
+
+  return <ThemeProviderInner>{children}</ThemeProviderInner>
 }

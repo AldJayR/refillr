@@ -74,28 +74,29 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <html lang="en">
-        <head>
-          <HeadContent />
-        </head>
-        <body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <ThemeProvider>
           <ClerkProvider>
-          <Header />
-          <main>
-            <Suspense fallback={
-              <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm text-slate-400">Loading...</p>
+            <Header />
+            <main>
+              <Suspense fallback={
+                <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-sm text-slate-400">Loading...</p>
+                  </div>
                 </div>
-              </div>
-            }>
-              {children}
-            </Suspense>
-          </main>
-          <Toaster position="top-right" />
-        </ClerkProvider>
+              }>
+                {children}
+              </Suspense>
+            </main>
+            <Toaster position="top-right" />
+          </ClerkProvider>
+        </ThemeProvider>
         {import.meta.env.DEV && (
             <TanStackDevtools
               config={{
@@ -109,9 +110,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               ]}
             />
           )}
-          <Scripts />
-        </body>
-      </html>
-    </ThemeProvider>
+        <Scripts />
+      </body>
+    </html>
   )
 }
