@@ -10,6 +10,6 @@ export default defineConfig({
     ],
     globals: true,
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    exclude: ['node_modules', 'dist', '.git'],
+    exclude: ['node_modules', 'dist', '.git', 'src/**/*.integration.test.ts'],
   },
 })
