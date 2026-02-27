@@ -8,6 +8,7 @@ import Header from '../components/Header'
 import { Toaster } from '../components/ui/sonner'
 
 import appCss from '../styles.css?url'
+import { ThemeProvider } from '@/components/ThemeProvider'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -62,20 +63,26 @@ export const Route = createRootRoute({
         href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap',
       },
     ],
+    scripts: [
+      {
+        children: `(function(){try{var t=localStorage.getItem("vite-ui-theme");if(t==="dark"){document.documentElement.classList.add("dark")}}catch(e){}})()`,
+      },
+    ],
   }),
   shellComponent: RootDocument,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <ClerkProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <html lang="en">
+        <head>
+          <HeadContent />
+        </head>
+        <body>
+          <ClerkProvider>
           <Header />
-          <main className="pt-16">
+          <main>
             <Suspense fallback={
               <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
@@ -90,20 +97,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <Toaster position="top-right" />
         </ClerkProvider>
         {import.meta.env.DEV && (
-          <TanStackDevtools
-            config={{
-              position: 'bottom-right',
-            }}
-            plugins={[
-              {
-                name: 'Tanstack Router',
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-            ]}
-          />
-        )}
-        <Scripts />
-      </body>
-    </html>
+            <TanStackDevtools
+              config={{
+                position: 'bottom-right',
+              }}
+              plugins={[
+                {
+                  name: 'Tanstack Router',
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+              ]}
+            />
+          )}
+          <Scripts />
+        </body>
+      </html>
+    </ThemeProvider>
   )
 }

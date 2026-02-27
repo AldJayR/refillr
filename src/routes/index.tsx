@@ -102,39 +102,38 @@ function Dashboard() {
     })), [riders])
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="relative min-h-screen flex flex-col overflow-x-hidden">
+      {/* Background glow */}
+      <div className="absolute top-36 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
       {/* Hero Section */}
-      <div className="relative pt-4 pb-16 md:pt-16 md:pb-24 px-4 overflow-hidden">
-        {/* Background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
-        
+      <div className="mt-16 pt-4 pb-16 md:pt-16 md:pb-24 px-4 overflow-hidden">
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium mb-6 animate-fade-in">
+          <div className="animate-hero-fade-in hero-delay-0 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/60 text-primary text-sm mb-6">
             <Flame size={14} />
             <span>Fastest LPG Delivery in Nueva Ecija</span>
           </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold font-heading text-white mb-6 tracking-tight animate-fade-in" style={{ animationDelay: '100ms' }}>
+
+          <h1 className="animate-hero-fade-in hero-delay-1 text-5xl md:text-7xl font-bold font-heading text-foreground mb-6 tracking-tight">
             Never run out of gas <br className="hidden md:block" />
             <span className="text-gradient">mid-cooking again.</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '200ms' }}>
+          <p className="animate-hero-fade-in hero-delay-2 text-lg md:text-xl text-muted-foreground mb-10 max-w-prose mx-auto">
             Order verified Gasul, Solane, and Petron refills from trusted local dealers. Delivered to your door in minutes.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
-            <Link to="/order/new" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white h-14 px-8 text-lg rounded-xl glow-orange">
-                <Plus size={20} className="mr-2" />
+          <div className="animate-hero-fade-in hero-delay-3 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" asChild>
+              <Link to="/order/new">
+                <Plus />
                 Order Refill Now
-              </Button>
-            </Link>
-            <Link to="/merchants" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto h-14 px-8 text-lg rounded-xl border-slate-700 hover:bg-slate-800 text-white">
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/merchants">
                 View Local Dealers
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -143,7 +142,7 @@ function Dashboard() {
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 pb-24 grid lg:grid-cols-[1fr_400px] gap-8">
         
         {/* Left Column: Map & Search */}
-        <div className="space-y-6 flex flex-col h-[600px] lg:h-auto min-h-[500px]">
+        <div className="space-y-6 flex flex-col h-150 lg:h-auto min-h-125">
           <div className="relative flex-1 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shadow-black/50">
             <Map
               markers={mapMarkers}
@@ -180,13 +179,13 @@ function Dashboard() {
         </div>
 
         {/* Right Column: Dealers List */}
-        <div className="flex flex-col h-[600px] lg:h-auto">
+        <div className="flex flex-col h-150 lg:h-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <MapPin className="text-orange-500" size={20} />
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <MapPin className="text-primary" size={16} />
               Nearby Dealers
             </h2>
-            <span className="text-sm text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full">
+            <span className="text-sm text-muted-foreground bg-secondary px-2.5 py-1 rounded-full">
               {filteredMerchants.length} found
             </span>
           </div>

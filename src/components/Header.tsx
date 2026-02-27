@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import { Home, Menu, X, Truck, User, ShoppingBag, ListChecks, Flame, Store } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
+import { ModeToggle } from './ModeToggle'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -28,80 +29,87 @@ export default function Header() {
         className={cn(
           "fixed top-0 left-0 right-0 z-40 transition-all duration-300 border-b",
           isScrolled 
-            ? "bg-slate-950/80 backdrop-blur-md border-slate-800/50 shadow-lg" 
+            ? "bg-background/80 backdrop-blur-md border-border/50 shadow" 
             : "bg-transparent border-transparent"
         )}
       >
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsOpen(true)}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-colors md:hidden"
-              aria-label="Open menu"
-            >
-              <Menu size={24} />
-            </button>
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:shadow-orange-500/40 transition-all">
+          <Button asChild className="group px-0" variant="ghost">
+            <Link to="/">
+              <div className="size-8 rounded-lg bg-linear-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:shadow-orange-500/40 transition-all">
                 <Flame className="text-white" size={20} />
               </div>
-              <span className="text-xl font-bold font-heading text-white tracking-tight hidden sm:block">Refillr</span>
+              <span className="text-xl font-semibold font-heading text-foreground tracking-tight">Refillr</span>
             </Link>
-          </div>
+          </Button>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/merchants" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
-              Find Dealers
-            </Link>
-            <Link to="/merchant-setup" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
-              For Merchants
-            </Link>
-            <Link to="/rider-setup" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
-              For Riders
-            </Link>
+          <nav className="hidden md:flex items-center">
+            <Button asChild variant="ghost">
+              <Link to="/merchants">
+                Find Dealers
+              </Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link to="/merchant-setup">
+                For Merchants
+              </Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link to="/rider-setup">
+                For Riders
+              </Link>
+            </Button>
           </nav>
 
           <div className="flex items-center gap-4">
             <SignedIn>
-              <div className="hidden md:block">
+              <Button asChild className="hidden md:flex" size="sm">
                 <Link to="/order/new">
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white rounded-full px-6 shadow-lg shadow-orange-500/20">
-                    Order Now
-                  </Button>
+                  Order Now
                 </Link>
-              </div>
+              </Button>
+              <ModeToggle />
               <div className="hover-scale">
-                <UserButton 
+                <UserButton
                   afterSignOutUrl="/" 
                   appearance={{
                     elements: {
-                      avatarBox: "w-9 h-9 border-2 border-slate-800 hover:border-orange-500 transition-colors"
+                      avatarBox: "size-9 border-2 border-border hover:border-primary transition-colors"
                     }
                   }}
                 />
               </div>
+              <Button
+                aria-label="Open menu"
+                className="md:hidden"
+                onClick={() => setIsOpen(true)}
+                variant="ghost"
+                size="icon"
+              >
+                <Menu />
+              </Button>
             </SignedIn>
+            {/* Showed when signed out */}
             <SignedOut>
-              <div className="hidden sm:flex items-center gap-3">
-                <Link to="/sign-in">
-                  <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800/50">
+              <div className="hidden sm:flex items-center gap-2">
+                <Button asChild size="sm" variant="ghost">
+                  <Link to="/sign-in/$">
                     Log in
-                  </Button>
-                </Link>
-                <Link to="/sign-up">
-                  <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-6 font-medium">
+                  </Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link to="/sign-up/$">
                     Sign up
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
-              <div className="sm:hidden">
-                <Link to="/sign-in">
-                  <Button size="sm" className="bg-white text-slate-950 hover:bg-slate-200 rounded-full px-4 font-medium">
-                    Log in
-                  </Button>
+              <Button asChild className="flex sm:hidden" size="sm">
+                <Link to="/sign-in/$">
+                  Log in
                 </Link>
-              </div>
+              </Button>
+              <ModeToggle />
             </SignedOut>
           </div>
         </div>
@@ -117,7 +125,7 @@ export default function Header() {
 
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-80 glass-sidebar text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col",
+          "fixed top-0 left-0 h-full w-80 glass-sidebar text-foreground shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col",
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -138,7 +146,7 @@ export default function Header() {
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
             }}
           >
             <Home size={20} />
@@ -150,7 +158,7 @@ export default function Header() {
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
             }}
           >
             <ShoppingBag size={20} />
@@ -162,7 +170,7 @@ export default function Header() {
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
             }}
           >
             <ListChecks size={20} />
@@ -174,7 +182,7 @@ export default function Header() {
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
             }}
           >
             <User size={20} />
@@ -187,7 +195,7 @@ export default function Header() {
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
               activeProps={{
-                className: 'flex items-center gap-3 p-3 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20 text-white font-semibold transform scale-[1.02]',
+                className: 'flex items-center gap-3 p-3 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20 text-foreground font-semibold transform scale-[1.02]',
               }}
             >
               <Truck size={20} />
@@ -199,7 +207,7 @@ export default function Header() {
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
               activeProps={{
-                className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
+                className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
               }}
             >
               <Store size={20} />
