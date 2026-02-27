@@ -57,6 +57,7 @@ vi.mock('@/lib/db.server', () => ({
 vi.mock('@/models/Merchant.server', () => ({
   MerchantModel: {
     find: vi.fn(),
+    findOne: vi.fn(),
     findById: vi.fn(),
     create: vi.fn(),
     findByIdAndUpdate: vi.fn(),
@@ -199,6 +200,7 @@ describe('createMerchant', () => {
   })
 
   it('should create merchant with valid data', async () => {
+    vi.mocked(MerchantModel.findOne).mockResolvedValue(null as never)
     vi.mocked(MerchantModel.create).mockResolvedValue(mockMerchant as never)
 
     const result = await createMerchant({

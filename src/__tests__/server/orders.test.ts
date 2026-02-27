@@ -41,11 +41,27 @@ vi.mock('@/models/Order.server', () => ({
     find: vi.fn(),
     findById: vi.fn(),
     findByIdAndUpdate: vi.fn(),
+    findOneAndUpdate: vi.fn(),
   },
+}))
+
+vi.mock('@/models/Merchant.server', () => ({
+  MerchantModel: {
+    findById: vi.fn(),
+    exists: vi.fn(),
+  },
+}))
+
+vi.mock('@turf/turf', () => ({
+  point: vi.fn((arg: any) => arg),
+  distance: vi.fn(() => 1),
+  booleanPointInPolygon: vi.fn(() => true),
+  polygon: vi.fn((arg: any) => arg),
 }))
 
 import { createRefillRequest, getUserOrders, getMerchantOrders, cancelOrder, updateOrderStatus, getOrderById } from '@/server/orders.functions'
 import { OrderModel } from '@/models/Order.server'
+import { MerchantModel } from '@/models/Merchant.server'
 
 const mockOrderId = new Types.ObjectId()
 const mockMerchantId = new Types.ObjectId()
@@ -66,12 +82,25 @@ const mockOrder = {
   updatedAt: new Date(),
 }
 
+const mockMerchant = {
+  _id: mockMerchantId,
+  isOpen: true,
+  brandsAccepted: ['Gasul'],
+  tankSizes: ['11kg'],
+  pricing: { 'Gasul-11kg': 1200 },
+  location: { type: 'Point', coordinates: [120.9734, 15.4868] },
+  deliveryRadiusMeters: 5000,
+}
+
 describe('createRefillRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('should create order with valid data', async () => {
+    vi.mocked(MerchantModel.findById).mockReturnValue({
+      lean: () => Promise.resolve(mockMerchant),
+    } as never)
     vi.mocked(OrderModel.create).mockResolvedValue(mockOrder as never)
 
     const result = await createRefillRequest({
@@ -80,7 +109,6 @@ describe('createRefillRequest', () => {
         tankBrand: 'Gasul',
         tankSize: '11kg',
         quantity: 1,
-        totalPrice: 1200,
         deliveryLocation: { type: 'Point', coordinates: [120.9842, 14.5995] },
         deliveryAddress: '123 Test Street',
       }
@@ -91,6 +119,9 @@ describe('createRefillRequest', () => {
   })
 
   it('should convert merchantId to ObjectId', async () => {
+    vi.mocked(MerchantModel.findById).mockReturnValue({
+      lean: () => Promise.resolve(mockMerchant),
+    } as never)
     vi.mocked(OrderModel.create).mockResolvedValue(mockOrder as never)
 
     await createRefillRequest({
@@ -99,7 +130,6 @@ describe('createRefillRequest', () => {
         tankBrand: 'Gasul',
         tankSize: '11kg',
         quantity: 1,
-        totalPrice: 1200,
         deliveryLocation: { type: 'Point', coordinates: [120.9842, 14.5995] },
         deliveryAddress: '123 Test Street',
       }
@@ -113,6 +143,9 @@ describe('createRefillRequest', () => {
   })
 
   it('should set default status to pending', async () => {
+    vi.mocked(MerchantModel.findById).mockReturnValue({
+      lean: () => Promise.resolve(mockMerchant),
+    } as never)
     vi.mocked(OrderModel.create).mockResolvedValue(mockOrder as never)
 
     await createRefillRequest({
@@ -121,7 +154,6 @@ describe('createRefillRequest', () => {
         tankBrand: 'Gasul',
         tankSize: '11kg',
         quantity: 1,
-        totalPrice: 1200,
         deliveryLocation: { type: 'Point', coordinates: [120.9842, 14.5995] },
         deliveryAddress: '123 Test Street',
       }
@@ -210,7 +242,7 @@ describe('cancelOrder', () => {
   })
 
   it('should return false when order not found', async () => {
-    vi.mocked(OrderModel.findById).mockResolvedValue(null as never)
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue(null as never)
 
     const result = await cancelOrder({ data: { orderId: mockOrderId.toString() } } as any)
 
@@ -218,8 +250,7 @@ describe('cancelOrder', () => {
   })
 
   it('should return false when order status is not pending', async () => {
-    const nonPendingOrder = { ...mockOrder, status: 'dispatched' as const }
-    vi.mocked(OrderModel.findById).mockResolvedValue(nonPendingOrder as never)
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue(null as never)
 
     const result = await cancelOrder({ data: { orderId: mockOrderId.toString() } } as any)
 
@@ -227,42 +258,45 @@ describe('cancelOrder', () => {
   })
 
   it('should cancel order when status is pending', async () => {
-    const pendingOrder = {
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue({
       ...mockOrder,
-      status: 'pending' as const,
-      cancellationReason: '',
-      save: vi.fn().mockResolvedValue({}),
-      set: vi.fn().mockImplementation(function (this: Record<string, unknown>, key: string, val: unknown) {
-        this[key] = val
-      }),
-    }
-    vi.mocked(OrderModel.findById).mockResolvedValue(pendingOrder as never)
+      status: 'cancelled',
+    } as never)
 
     const result = await cancelOrder({
       data: { orderId: mockOrderId.toString(), cancellationReason: 'Customer requested' },
     } as any)
 
     expect(result).toBe(true)
-    expect(pendingOrder.save).toHaveBeenCalled()
-    expect(pendingOrder.status).toBe('cancelled')
-    expect(pendingOrder.cancellationReason).toBe('Customer requested')
+    expect(OrderModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: mockOrderId.toString(), userId: 'user_123', status: 'pending' },
+      {
+        $set: expect.objectContaining({
+          status: 'cancelled',
+          cancellationReason: 'Customer requested',
+        }),
+      },
+      { new: true }
+    )
   })
 
   it('should use default cancellation reason when not provided', async () => {
-    const pendingOrder = {
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue({
       ...mockOrder,
-      status: 'pending' as const,
-      cancellationReason: '',
-      save: vi.fn().mockResolvedValue({}),
-      set: vi.fn().mockImplementation(function (this: Record<string, unknown>, key: string, val: unknown) {
-        this[key] = val
-      }),
-    }
-    vi.mocked(OrderModel.findById).mockResolvedValue(pendingOrder as never)
+      status: 'cancelled',
+    } as never)
 
     await cancelOrder({ data: { orderId: mockOrderId.toString() } } as any)
 
-    expect(pendingOrder.cancellationReason).toBe('Cancelled by user')
+    expect(OrderModel.findOneAndUpdate).toHaveBeenCalledWith(
+      expect.any(Object),
+      {
+        $set: expect.objectContaining({
+          cancellationReason: 'Cancelled by user',
+        }),
+      },
+      { new: true }
+    )
   })
 })
 
@@ -272,22 +306,30 @@ describe('updateOrderStatus', () => {
   })
 
   it('should return false when order not found', async () => {
-    vi.mocked(OrderModel.findByIdAndUpdate).mockResolvedValue(null as never)
+    vi.mocked(OrderModel.findById).mockResolvedValue(null as never)
 
     const result = await updateOrderStatus({ data: { orderId: 'nonexistent', status: 'accepted' } } as any)
     expect(result).toBe(false)
   })
 
   it('should update status to accepted', async () => {
-    vi.mocked(OrderModel.findByIdAndUpdate).mockResolvedValue(mockOrder as never)
+    vi.mocked(OrderModel.findById).mockResolvedValue({
+      ...mockOrder,
+      status: 'pending',
+    } as never)
+    vi.mocked(MerchantModel.exists).mockResolvedValue({ _id: mockMerchantId } as never)
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue({
+      ...mockOrder,
+      status: 'accepted',
+    } as never)
 
     const result = await updateOrderStatus({
       data: { orderId: mockOrderId.toString(), status: 'accepted' },
     } as any)
 
     expect(result).toBe(true)
-    expect(OrderModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      mockOrderId.toString(),
+    expect(OrderModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: mockOrderId.toString(), status: 'pending' },
       expect.objectContaining({
         $set: expect.objectContaining({
           status: 'accepted',
@@ -299,14 +341,23 @@ describe('updateOrderStatus', () => {
   })
 
   it('should set dispatchedAt when status is dispatched', async () => {
-    vi.mocked(OrderModel.findByIdAndUpdate).mockResolvedValue(mockOrder as never)
+    vi.mocked(OrderModel.findById).mockResolvedValue({
+      ...mockOrder,
+      status: 'accepted',
+      riderId: 'user_123',
+    } as never)
+    vi.mocked(MerchantModel.exists).mockResolvedValue(null as never)
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue({
+      ...mockOrder,
+      status: 'dispatched',
+    } as never)
 
     await updateOrderStatus({
       data: { orderId: mockOrderId.toString(), status: 'dispatched' },
     } as any)
 
-    expect(OrderModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      mockOrderId.toString(),
+    expect(OrderModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: mockOrderId.toString(), status: 'accepted' },
       expect.objectContaining({
         $set: expect.objectContaining({
           status: 'dispatched',
@@ -318,14 +369,23 @@ describe('updateOrderStatus', () => {
   })
 
   it('should set deliveredAt when status is delivered', async () => {
-    vi.mocked(OrderModel.findByIdAndUpdate).mockResolvedValue(mockOrder as never)
+    vi.mocked(OrderModel.findById).mockResolvedValue({
+      ...mockOrder,
+      status: 'dispatched',
+      riderId: 'user_123',
+    } as never)
+    vi.mocked(MerchantModel.exists).mockResolvedValue(null as never)
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue({
+      ...mockOrder,
+      status: 'delivered',
+    } as never)
 
     await updateOrderStatus({
       data: { orderId: mockOrderId.toString(), status: 'delivered' },
     } as any)
 
-    expect(OrderModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      mockOrderId.toString(),
+    expect(OrderModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: mockOrderId.toString(), status: 'dispatched' },
       expect.objectContaining({
         $set: expect.objectContaining({
           status: 'delivered',
@@ -338,14 +398,22 @@ describe('updateOrderStatus', () => {
 
   it('should include riderId when provided', async () => {
     const riderId = new Types.ObjectId()
-    vi.mocked(OrderModel.findByIdAndUpdate).mockResolvedValue(mockOrder as never)
+    vi.mocked(OrderModel.findById).mockResolvedValue({
+      ...mockOrder,
+      status: 'pending',
+    } as never)
+    vi.mocked(MerchantModel.exists).mockResolvedValue({ _id: mockMerchantId } as never)
+    vi.mocked(OrderModel.findOneAndUpdate).mockResolvedValue({
+      ...mockOrder,
+      status: 'accepted',
+    } as never)
 
     await updateOrderStatus({
       data: { orderId: mockOrderId.toString(), status: 'accepted', riderId: riderId.toString() },
     } as any)
 
-    expect(OrderModel.findByIdAndUpdate).toHaveBeenCalledWith(
-      mockOrderId.toString(),
+    expect(OrderModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: mockOrderId.toString(), status: 'pending' },
       expect.objectContaining({
         $set: expect.objectContaining({
           riderId: riderId.toString(),
@@ -372,8 +440,9 @@ describe('getOrderById', () => {
 
   it('should return order when found', async () => {
     vi.mocked(OrderModel.findById).mockReturnValue({
-      lean: vi.fn().mockResolvedValue(mockOrder),
+      lean: vi.fn().mockResolvedValue({ ...mockOrder, userId: 'user_123' }),
     } as never)
+    vi.mocked(MerchantModel.exists).mockResolvedValue(null as never)
 
     const result = await getOrderById({ data: { orderId: mockOrderId.toString() } } as any)
 

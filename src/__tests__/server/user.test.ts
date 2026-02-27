@@ -83,7 +83,12 @@ describe('User Server Functions (Saved Addresses)', () => {
 
     describe('saveAddress', () => {
         it('should update an existing address label', async () => {
-            vi.mocked(UserModel.updateOne).mockResolvedValue({ matchedCount: 1 } as any)
+            vi.mocked(UserModel.findOne).mockReturnValue({
+                lean: vi.fn().mockResolvedValue({ savedAddresses: [mockAddress] }),
+            } as never)
+            vi.mocked(UserModel.updateOne)
+                .mockResolvedValueOnce({} as any) // clear isDefault
+                .mockResolvedValueOnce({} as any) // update existing address
 
             const result = await saveAddress({
                 data: {
@@ -92,18 +97,22 @@ describe('User Server Functions (Saved Addresses)', () => {
             } as any)
 
             expect(result).toBe(true)
+            expect(UserModel.findOne).toHaveBeenCalledWith(
+                { clerkId: mockUserId, 'savedAddresses.label': 'home' }
+            )
             expect(UserModel.updateOne).toHaveBeenCalledWith(
                 { clerkId: mockUserId, 'savedAddresses.label': 'home' },
-                expect.any(Object)
+                expect.objectContaining({ $set: expect.any(Object) })
             )
         })
 
         it('should add a new address if label not found', async () => {
-            // First call for isDefault update, second for existing label check, third for push
+            vi.mocked(UserModel.findOne).mockReturnValue({
+                lean: vi.fn().mockResolvedValue(null),
+            } as never)
             vi.mocked(UserModel.updateOne)
-                .mockResolvedValueOnce({} as any) // Reset defaults
-                .mockResolvedValueOnce({ matchedCount: 0 } as any) // Not matched existing label
-                .mockResolvedValueOnce({} as any) // Push new
+                .mockResolvedValueOnce({} as any) // clear isDefault
+                .mockResolvedValueOnce({} as any) // push new
 
             const result = await saveAddress({
                 data: {

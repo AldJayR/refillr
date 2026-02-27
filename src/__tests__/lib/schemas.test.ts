@@ -127,7 +127,6 @@ describe('CreateOrderSchema', () => {
     tankBrand: 'Gasul' as const,
     tankSize: '11kg' as const,
     quantity: 1,
-    totalPrice: 1200,
     deliveryLocation: {
       type: 'Point' as const,
       coordinates: [120.9842, 14.5995] as [number, number],
@@ -148,10 +147,10 @@ describe('CreateOrderSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects negative price', () => {
+  it('rejects negative quantity', () => {
     const result = CreateOrderSchema.safeParse({
       ...validOrder,
-      totalPrice: -100,
+      quantity: -1,
     })
     expect(result.success).toBe(false)
   })
