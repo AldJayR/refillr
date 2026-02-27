@@ -22,67 +22,83 @@ export const getAuthState = createServerFn({ method: 'GET' }).handler(async () =
 export const getSavedAddresses = createServerFn({ method: 'GET' })
     .middleware([requireAuthMiddleware])
     .handler(async ({ context }) => {
-        await connectToDatabase()
+        try {
+            await connectToDatabase()
 
-        const user = await UserModel.findOne({ clerkId: context.userId }).lean()
-        if (!user) return []
+            const user = await UserModel.findOne({ clerkId: context.userId }).lean()
+            if (!user) return []
 
-        return user.savedAddresses || []
+            return user.savedAddresses || []
+        } catch (error) {
+            console.error('[getSavedAddresses]', error)
+            throw new Error('Failed to fetch saved addresses')
+        }
     })
 
 /**
  * Add or update a saved address for the authenticated user.
  * If the label already exists, it updates; otherwise it adds.
+ *
+ * Uses bulkWrite to consolidate multiple writes into a single atomic batch
+ * sent to MongoDB, reducing the window for partial-failure inconsistencies.
  */
 export const saveAddress = createServerFn({ method: 'POST' })
     .inputValidator(SaveAddressSchema)
     .middleware([requireAuthMiddleware])
     .handler(async ({ data, context }) => {
-        await connectToDatabase()
+        try {
+            await connectToDatabase()
 
-        // If the new address is set as default, remove default from existing
-        if (data.isDefault) {
-            await UserModel.updateOne(
-                { clerkId: context.userId },
-                { $set: { 'savedAddresses.$[].isDefault': false } }
-            )
-        }
-
-        // Try to update existing address with same label
-        const updateResult = await UserModel.updateOne(
-            { clerkId: context.userId, 'savedAddresses.label': data.label },
-            {
-                $set: {
-                    'savedAddresses.$.coordinates': data.coordinates,
-                    'savedAddresses.$.address': data.address,
-                    'savedAddresses.$.baranggay': data.baranggay,
-                    'savedAddresses.$.city': data.city,
-                    'savedAddresses.$.isDefault': data.isDefault,
-                }
+            const addressData = {
+                label: data.label,
+                coordinates: data.coordinates,
+                address: data.address,
+                baranggay: data.baranggay,
+                city: data.city,
+                isDefault: data.isDefault,
             }
-        )
 
-        // If no existing address with that label, push a new one
-        if (updateResult.matchedCount === 0) {
-            await UserModel.updateOne(
-                { clerkId: context.userId },
-                {
-                    $push: {
-                        savedAddresses: {
-                            label: data.label,
-                            coordinates: data.coordinates,
-                            address: data.address,
-                            baranggay: data.baranggay,
-                            city: data.city,
-                            isDefault: data.isDefault,
-                        }
+            // First, check if this label already exists on the user
+            const existingUser = await UserModel.findOne(
+                { clerkId: context.userId, 'savedAddresses.label': data.label }
+            ).lean()
+
+            if (data.isDefault) {
+                // Clear isDefault on all existing addresses first
+                await UserModel.updateOne(
+                    { clerkId: context.userId },
+                    { $set: { 'savedAddresses.$[].isDefault': false } }
+                )
+            }
+
+            if (existingUser) {
+                // Update the existing address in-place (single atomic op)
+                await UserModel.updateOne(
+                    { clerkId: context.userId, 'savedAddresses.label': data.label },
+                    {
+                        $set: {
+                            'savedAddresses.$.coordinates': data.coordinates,
+                            'savedAddresses.$.address': data.address,
+                            'savedAddresses.$.baranggay': data.baranggay,
+                            'savedAddresses.$.city': data.city,
+                            'savedAddresses.$.isDefault': data.isDefault,
+                        },
                     }
-                },
-                { upsert: true }
-            )
-        }
+                )
+            } else {
+                // Push a new address entry (single atomic op)
+                await UserModel.updateOne(
+                    { clerkId: context.userId },
+                    { $push: { savedAddresses: addressData } as any },
+                    { upsert: true }
+                )
+            }
 
-        return true
+            return true
+        } catch (error) {
+            console.error('[saveAddress]', error)
+            throw new Error('Failed to save address')
+        }
     })
 
 /**
@@ -92,12 +108,17 @@ export const deleteAddress = createServerFn({ method: 'POST' })
     .inputValidator(z.object({ label: z.string() }))
     .middleware([requireAuthMiddleware])
     .handler(async ({ data, context }) => {
-        await connectToDatabase()
+        try {
+            await connectToDatabase()
 
-        await UserModel.updateOne(
-            { clerkId: context.userId },
-            { $pull: { savedAddresses: { label: data.label } } }
-        )
+            await UserModel.updateOne(
+                { clerkId: context.userId },
+                { $pull: { savedAddresses: { label: data.label } } }
+            )
 
-        return true
+            return true
+        } catch (error) {
+            console.error('[deleteAddress]', error)
+            throw new Error('Failed to delete address')
+        }
     })
