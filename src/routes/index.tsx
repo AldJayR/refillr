@@ -104,7 +104,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
       {/* Hero Section */}
-      <div className="relative pt-20 pb-16 md:pt-32 md:pb-24 px-4 overflow-hidden">
+      <div className="relative pt-4 pb-16 md:pt-16 md:pb-24 px-4 overflow-hidden">
         {/* Background glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
         

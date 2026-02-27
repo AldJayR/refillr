@@ -75,16 +75,18 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <ClerkProvider>
           <Header />
-          <Suspense fallback={
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-slate-400">Loading...</p>
+          <main className="pt-16">
+            <Suspense fallback={
+              <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-slate-400">Loading...</p>
+                </div>
               </div>
-            </div>
-          }>
-            {children}
-          </Suspense>
+            }>
+              {children}
+            </Suspense>
+          </main>
           <Toaster position="top-right" />
         </ClerkProvider>
         {import.meta.env.DEV && (

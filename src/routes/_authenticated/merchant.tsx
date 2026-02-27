@@ -27,7 +27,7 @@ function MerchantLayout() {
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row">
       {/* Sidebar - hidden on mobile, shown on md+ */}
-      <aside className="hidden md:flex w-64 glass-sidebar flex-col shrink-0 sticky top-0 h-screen">
+      <aside className="hidden md:flex w-64 glass-sidebar flex-col shrink-0 sticky top-16 h-[calc(100vh-4rem)]">
         <div className="p-6 border-b border-slate-800/50">
           <h2 className="text-lg font-bold font-heading flex items-center gap-2">
             <Flame className="text-orange-500" size={20} />
