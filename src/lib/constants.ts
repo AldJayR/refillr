@@ -1,7 +1,7 @@
 /**
- * Default location: Manila, Philippines (GeoJSON order: [lng, lat])
+ * Default location: Cabanatuan City, Nueva Ecija, Philippines
  */
-export const DEFAULT_LOCATION = { lat: 14.5995, lng: 120.9842 } as const
+export const DEFAULT_LOCATION = { lat: 15.4868, lng: 120.9734 } as const
 
 /**
  * Default search radius for nearby merchants/riders (customer-facing).

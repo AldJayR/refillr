@@ -28,10 +28,11 @@ import { useGeolocation } from '@/hooks/useGeolocation'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { formatTime } from '@/lib/utils'
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
 const searchSchema = z.object({
-    lat: z.number().optional().default(14.5995),
-    lng: z.number().optional().default(120.9842),
+    lat: z.number().optional().default(DEFAULT_LOCATION.lat),
+    lng: z.number().optional().default(DEFAULT_LOCATION.lng),
 })
 
 export const Route = createFileRoute('/_authenticated/rider')({

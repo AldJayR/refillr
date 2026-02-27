@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
     ArrowLeft,
@@ -8,7 +8,9 @@ import {
     Building,
     Plus,
     Trash2,
-    Star
+    Star,
+    Crosshair,
+    Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { getSavedAddresses, saveAddress, deleteAddress } from '@/server/user.functions'
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
 export const Route = createFileRoute('/_authenticated/profile')({
     loader: () => getSavedAddresses(),
@@ -61,13 +64,45 @@ function ProfilePage() {
     const [city, setCity] = useState('')
     const [isDefault, setIsDefault] = useState(false)
 
+    // GPS coordinate detection for address form
+    const [detectedCoords, setDetectedCoords] = useState<[number, number] | null>(null)
+    const [gpsStatus, setGpsStatus] = useState<'idle' | 'detecting' | 'success' | 'failed'>('idle')
+
+    // Detect GPS when form is opened
+    useEffect(() => {
+        if (!showForm) {
+            setGpsStatus('idle')
+            setDetectedCoords(null)
+            return
+        }
+
+        if (!('geolocation' in navigator)) {
+            setGpsStatus('failed')
+            return
+        }
+
+        setGpsStatus('detecting')
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                setDetectedCoords([pos.coords.longitude, pos.coords.latitude])
+                setGpsStatus('success')
+            },
+            () => {
+                setGpsStatus('failed')
+            },
+        )
+    }, [showForm])
+
     const handleSave = async () => {
         setSaving(true)
         try {
+            // Use detected GPS coords, or fall back to Cabanatuan City default
+            const coordinates: [number, number] = detectedCoords ?? [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat]
+
             const success = await saveAddress({
                 data: {
                     label,
-                    coordinates: [120.9842, 14.5995] as [number, number],
+                    coordinates,
                     address,
                     baranggay: baranggay || undefined,
                     city: city || undefined,
@@ -132,6 +167,28 @@ function ProfilePage() {
                 {showForm && (
                     <div className="bg-slate-900 border border-orange-500/30 rounded-xl p-4 mb-6 space-y-4">
                         <h3 className="text-white font-semibold">Add Address</h3>
+
+                        {/* GPS location status */}
+                        <div className="flex items-center gap-2 text-xs">
+                            {gpsStatus === 'detecting' && (
+                                <>
+                                    <Loader2 size={12} className="animate-spin text-orange-400" />
+                                    <span className="text-slate-400">Detecting your location...</span>
+                                </>
+                            )}
+                            {gpsStatus === 'success' && (
+                                <>
+                                    <Crosshair size={12} className="text-green-400" />
+                                    <span className="text-green-400">Location detected</span>
+                                </>
+                            )}
+                            {gpsStatus === 'failed' && (
+                                <>
+                                    <MapPin size={12} className="text-yellow-400" />
+                                    <span className="text-yellow-400">GPS unavailable — using default location</span>
+                                </>
+                            )}
+                        </div>
 
                         <div>
                             <label className="text-sm text-slate-400 mb-2 block">Type</label>

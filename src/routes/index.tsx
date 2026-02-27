@@ -18,10 +18,12 @@ import { getNearbyRiders } from '@/server/rider.functions'
 import { formatDistance } from '@/lib/distance'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { z } from 'zod'
+import { DEFAULT_LOCATION } from '@/lib/constants'
+import { toast } from 'sonner'
 
 const searchSchema = z.object({
-  lat: z.number().optional().default(14.5995),
-  lng: z.number().optional().default(120.9842),
+  lat: z.number().optional().default(DEFAULT_LOCATION.lat),
+  lng: z.number().optional().default(DEFAULT_LOCATION.lng),
 })
 
 export const Route = createFileRoute('/')({
@@ -53,6 +55,11 @@ function Dashboard() {
     currentLng: lng,
     onLocationDetected: (newLat, newLng) => {
       navigate({ search: { lat: newLat, lng: newLng } })
+    },
+    onError: () => {
+      toast.info('Location unavailable — showing results near Cabanatuan City', {
+        id: 'gps-denied',
+      })
     },
   })
 
@@ -104,7 +111,7 @@ function Dashboard() {
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium mb-6 animate-fade-in">
             <Flame size={14} />
-            <span>Fastest LPG Delivery in Metro Manila</span>
+            <span>Fastest LPG Delivery in Nueva Ecija</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold font-heading text-white mb-6 tracking-tight animate-fade-in" style={{ animationDelay: '100ms' }}>

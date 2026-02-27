@@ -6,10 +6,12 @@ import { ArrowLeft, Clock, MapPin, Filter, Phone } from 'lucide-react'
 import { formatDistance } from '@/lib/distance'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { z } from 'zod'
+import { DEFAULT_LOCATION } from '@/lib/constants'
+import { toast } from 'sonner'
 
 const searchSchema = z.object({
-  lat: z.number().optional().default(14.5995),
-  lng: z.number().optional().default(120.9842),
+  lat: z.number().optional().default(DEFAULT_LOCATION.lat),
+  lng: z.number().optional().default(DEFAULT_LOCATION.lng),
 })
 
 export const Route = createFileRoute('/merchants')({
@@ -32,6 +34,11 @@ function MerchantsList() {
     currentLng: lng,
     onLocationDetected: (newLat, newLng) => {
       navigate({ search: { lat: newLat, lng: newLng } })
+    },
+    onError: () => {
+      toast.info('Location unavailable — showing results near Cabanatuan City', {
+        id: 'gps-denied',
+      })
     },
   })
 

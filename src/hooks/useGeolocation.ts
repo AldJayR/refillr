@@ -7,6 +7,8 @@ interface UseGeolocationOptions {
   currentLng: number
   /** Callback to update coordinates (typically navigate with new search params) */
   onLocationDetected: (lat: number, lng: number) => void
+  /** Called when geolocation is denied or unavailable */
+  onError?: () => void
   /** Minimum delta to trigger update (default 0.001 ~ 111m) */
   threshold?: number
 }
@@ -19,10 +21,14 @@ export function useGeolocation({
   currentLat,
   currentLng,
   onLocationDetected,
+  onError,
   threshold = 0.001,
 }: UseGeolocationOptions) {
   useEffect(() => {
-    if (!('geolocation' in navigator)) return
+    if (!('geolocation' in navigator)) {
+      onError?.()
+      return
+    }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -36,7 +42,7 @@ export function useGeolocation({
         }
       },
       () => {
-        // Geolocation denied or unavailable — stay on defaults
+        onError?.()
       },
     )
   }, []) // eslint-disable-line react-hooks/exhaustive-deps

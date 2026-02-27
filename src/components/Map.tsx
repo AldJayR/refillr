@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
 interface MapProps {
   center?: [number, number]
@@ -25,7 +26,7 @@ export interface RiderMarker {
   name: string
 }
 
-const DEFAULT_CENTER: [number, number] = [120.9842, 14.5995]
+const DEFAULT_CENTER: [number, number] = [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat]
 const DEFAULT_ZOOM = 13
 
 /** Escape HTML to prevent XSS when injecting user data into innerHTML */
@@ -87,10 +88,10 @@ export default function Map({
   useEffect(() => {
     if (!mapContainer.current || map.current) return
 
-    const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || import.meta.env.MAPBOX_ACCESS_TOKEN
+    const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
 
     if (!accessToken) {
-      console.warn('Mapbox access token not found. Map may not load properly.')
+      console.warn('Mapbox access token not found. Set VITE_MAPBOX_ACCESS_TOKEN in your .env file.')
     }
 
     mapboxgl.accessToken = accessToken || ''
@@ -107,6 +108,8 @@ export default function Map({
     map.current.addControl(new mapboxgl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
+      showUserLocation: true,
+      showUserHeading: true,
     }))
 
     map.current.on('load', () => {

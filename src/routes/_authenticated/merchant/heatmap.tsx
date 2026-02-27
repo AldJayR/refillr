@@ -3,8 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { getMerchantOrders } from '@/server/orders.functions'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
-const DEFAULT_CENTER: [number, number] = [120.9842, 14.5995]
+const DEFAULT_CENTER: [number, number] = [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat]
 
 export const Route = createFileRoute('/_authenticated/merchant/heatmap')({
   loader: ({ context }) => {
@@ -42,9 +43,7 @@ function DemandHeatmap() {
   useEffect(() => {
     if (!mapContainer.current || map.current) return
 
-    const accessToken =
-      import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ||
-      import.meta.env.MAPBOX_ACCESS_TOKEN
+    const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
     mapboxgl.accessToken = accessToken || ''
 
     map.current = new mapboxgl.Map({
@@ -71,9 +70,11 @@ function DemandHeatmap() {
 
     const geojson = ordersToGeoJSON(orders)
 
-    // Remove existing source/layer if re-rendering
-    if (map.current.getSource('orders-heat')) {
+    // Remove existing source/layer if re-rendering (check each independently)
+    if (map.current.getLayer('orders-heat-layer')) {
       map.current.removeLayer('orders-heat-layer')
+    }
+    if (map.current.getSource('orders-heat')) {
       map.current.removeSource('orders-heat')
     }
 

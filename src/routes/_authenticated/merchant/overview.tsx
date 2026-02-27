@@ -15,48 +15,48 @@ import { Package, TrendingUp, Truck, XCircle, MapPin } from 'lucide-react'
 import TrustBadge from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
 
-// Preset polygon areas (Metro Manila sample barangays/cities)
-// Each polygon is an array of [lng, lat] coordinate pairs
+// Preset polygon areas (Nueva Ecija cities)
+// Each polygon is a closed bounding-box ring of [lng, lat] coordinate pairs
 const AREA_PRESETS: Record<string, { label: string; polygon: number[][] }> = {
   all: { label: 'All Areas', polygon: [] },
-  quezon_city: {
-    label: 'Quezon City',
+  cabanatuan: {
+    label: 'Cabanatuan City',
     polygon: [
-      [121.0100, 14.6800],
-      [121.0900, 14.6800],
-      [121.0900, 14.6200],
-      [121.0100, 14.6200],
-      [121.0100, 14.6800],
+      [120.9300, 15.5100],
+      [121.0200, 15.5100],
+      [121.0200, 15.4500],
+      [120.9300, 15.4500],
+      [120.9300, 15.5100],
     ],
   },
-  manila: {
-    label: 'Manila',
+  san_jose: {
+    label: 'San Jose City',
     polygon: [
-      [120.9600, 14.6200],
-      [121.0100, 14.6200],
-      [121.0100, 14.5600],
-      [120.9600, 14.5600],
-      [120.9600, 14.6200],
+      [120.9400, 15.8200],
+      [121.0400, 15.8200],
+      [121.0400, 15.7600],
+      [120.9400, 15.7600],
+      [120.9400, 15.8200],
     ],
   },
-  makati: {
-    label: 'Makati',
+  gapan: {
+    label: 'Gapan City',
     polygon: [
-      [121.0100, 14.5700],
-      [121.0500, 14.5700],
-      [121.0500, 14.5300],
-      [121.0100, 14.5300],
-      [121.0100, 14.5700],
+      [120.9200, 15.3200],
+      [121.0000, 15.3200],
+      [121.0000, 15.2700],
+      [120.9200, 15.2700],
+      [120.9200, 15.3200],
     ],
   },
-  taguig: {
-    label: 'Taguig / BGC',
+  palayan: {
+    label: 'Palayan City',
     polygon: [
-      [121.0400, 14.5500],
-      [121.0700, 14.5500],
-      [121.0700, 14.5100],
-      [121.0400, 14.5100],
-      [121.0400, 14.5500],
+      [121.0500, 15.5700],
+      [121.1400, 15.5700],
+      [121.1400, 15.5100],
+      [121.0500, 15.5100],
+      [121.0500, 15.5700],
     ],
   },
 }

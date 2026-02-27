@@ -11,6 +11,8 @@ import {
     AlertCircle,
     Store,
     ShieldCheck,
+    Home,
+    Building,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,6 +26,7 @@ import {
 import { cn } from '@/lib/utils'
 import { createRefillRequest } from '@/server/orders.functions'
 import { getMerchantById, getNearbyMerchants } from '@/server/merchants.functions'
+import { getSavedAddresses } from '@/server/user.functions'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { TANK_BRANDS, TANK_SIZES, DEFAULT_LOCATION, DEFAULT_SEARCH_RADIUS_METERS } from '@/lib/constants'
@@ -40,17 +43,34 @@ export const Route = createFileRoute('/_authenticated/order/new')({
     validateSearch: searchSchema,
     loader: async ({ location }) => {
         const { merchantId, lat, lng } = location.search as z.infer<typeof searchSchema>
-        const [preselectedMerchant, nearbyMerchants] = await Promise.all([
+        const [preselectedMerchant, nearbyMerchants, savedAddresses] = await Promise.all([
             merchantId ? getMerchantById({ data: { merchantId } }) : Promise.resolve(null),
             getNearbyMerchants({ data: { latitude: lat ?? DEFAULT_LOCATION.lat, longitude: lng ?? DEFAULT_LOCATION.lng, radiusMeters: DEFAULT_SEARCH_RADIUS_METERS } }),
+            getSavedAddresses().catch(() => []),
         ])
-        return { preselectedMerchant, nearbyMerchants }
+        return { preselectedMerchant, nearbyMerchants, savedAddresses }
     },
     component: NewOrder,
 })
 
+interface SavedAddress {
+    label: 'home' | 'office' | 'other'
+    coordinates: [number, number]
+    address: string
+    baranggay?: string
+    city?: string
+    isDefault: boolean
+}
+
+const SAVED_ADDR_ICONS: Record<string, typeof MapPin> = {
+    home: Home,
+    office: Building,
+    other: MapPin,
+}
+
 function NewOrder() {
-    const { preselectedMerchant, nearbyMerchants } = Route.useLoaderData()
+    const { preselectedMerchant, nearbyMerchants, savedAddresses: rawSavedAddresses } = Route.useLoaderData()
+    const savedAddresses = rawSavedAddresses as SavedAddress[]
     const { lat, lng } = Route.useSearch()
 
     const [step, setStep] = useState(preselectedMerchant ? 1 : 0)
@@ -335,6 +355,58 @@ function NewOrder() {
                             </h2>
 
                             <div className="space-y-4">
+                                {/* Saved Address Picker */}
+                                {savedAddresses.length > 0 && (
+                                    <div>
+                                        <label className="text-sm text-slate-400 mb-2 block">Saved Addresses</label>
+                                        <div className="space-y-2">
+                                            {savedAddresses.map((addr) => {
+                                                const Icon = SAVED_ADDR_ICONS[addr.label] || MapPin
+                                                return (
+                                                    <button
+                                                        key={addr.label}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setDeliveryCoords(addr.coordinates)
+                                                            const fullAddr = [addr.address, addr.baranggay, addr.city]
+                                                                .filter(Boolean)
+                                                                .join(', ')
+                                                            setDeliveryAddress(fullAddr)
+                                                            setError(null)
+                                                        }}
+                                                        className={cn(
+                                                            'w-full text-left rounded-lg border p-3 flex items-center gap-3 transition-colors',
+                                                            deliveryAddress ===
+                                                                [addr.address, addr.baranggay, addr.city].filter(Boolean).join(', ')
+                                                                ? 'border-orange-500 bg-orange-500/10'
+                                                                : 'border-slate-700 bg-slate-800/60 hover:bg-slate-800'
+                                                        )}
+                                                    >
+                                                        <Icon size={16} className="text-orange-500 shrink-0" />
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm text-white font-medium capitalize">{addr.label}</p>
+                                                            <p className="text-xs text-slate-400 truncate">
+                                                                {[addr.address, addr.baranggay, addr.city].filter(Boolean).join(', ')}
+                                                            </p>
+                                                        </div>
+                                                        {addr.isDefault && (
+                                                            <span className="ml-auto text-xs text-orange-400 shrink-0">Default</span>
+                                                        )}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                        <div className="relative my-3">
+                                            <div className="absolute inset-0 flex items-center">
+                                                <span className="w-full border-t border-slate-700" />
+                                            </div>
+                                            <div className="relative flex justify-center text-xs">
+                                                <span className="bg-slate-900 px-2 text-slate-500">or enter manually</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div>
                                     <label className="text-sm text-slate-400 mb-2 block">Address</label>
                                     <Input
