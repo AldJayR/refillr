@@ -4,7 +4,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 
-import viteReact from '@vitejs/plugin-react'
+import viteReact from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
@@ -23,8 +23,18 @@ const config = defineConfig({
     devtools(),
     nitro({
       rollupConfig: {
-        external: [/^@sentry\//],
+        external: [
+          /^@sentry\//,
+          'kerberos',
+          'snappy',
+          '@mongodb-js/saslprep',
+          'mongodb',
+          'mongoose',
+          '@typegoose/typegoose',
+          'reflect-metadata'
+        ],
         output: {
+          banner: 'import "reflect-metadata";',
           plugins: [{
             name: 'fix-json-imports',
             renderChunk(code: string) {
