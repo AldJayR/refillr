@@ -73,9 +73,10 @@ export const UpdateMerchantPricingSchema = z.object({
 })
 
 const polygonCoordinateSchema = z.array(z.number()).min(2).max(2)
+const polygonRingSchema = z.array(polygonCoordinateSchema).min(3).max(500)
 
 export const GetMerchantsInPolygonSchema = z.object({
-  polygon: z.array(polygonCoordinateSchema).min(3).max(500),
+  polygon: z.array(polygonRingSchema).min(1),
 })
 
 // Rider schemas
@@ -94,7 +95,7 @@ export const GetOrderAnalyticsSchema = z.object({
   merchantId: z.string().regex(objectIdRegex, 'Invalid merchant ID format'),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  polygon: z.array(polygonCoordinateSchema).min(3).max(500).optional(),
+  polygon: z.array(polygonRingSchema).min(1).optional(),
 })
 
 // Inventory schemas

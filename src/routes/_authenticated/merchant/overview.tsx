@@ -17,47 +17,47 @@ import { Button } from '@/components/ui/button'
 
 // Preset polygon areas (Nueva Ecija cities)
 // Each polygon is a closed bounding-box ring of [lng, lat] coordinate pairs
-const AREA_PRESETS: Record<string, { label: string; polygon: number[][] }> = {
+const AREA_PRESETS: Record<string, { label: string; polygon: number[][][] }> = {
   all: { label: 'All Areas', polygon: [] },
   cabanatuan: {
     label: 'Cabanatuan City',
-    polygon: [
+    polygon: [[
       [120.9300, 15.5100],
       [121.0200, 15.5100],
       [121.0200, 15.4500],
       [120.9300, 15.4500],
       [120.9300, 15.5100],
-    ],
+    ]],
   },
   san_jose: {
     label: 'San Jose City',
-    polygon: [
+    polygon: [[
       [120.9400, 15.8200],
       [121.0400, 15.8200],
       [121.0400, 15.7600],
       [120.9400, 15.7600],
       [120.9400, 15.8200],
-    ],
+    ]],
   },
   gapan: {
     label: 'Gapan City',
-    polygon: [
+    polygon: [[
       [120.9200, 15.3200],
       [121.0000, 15.3200],
       [121.0000, 15.2700],
       [120.9200, 15.2700],
       [120.9200, 15.3200],
-    ],
+    ]],
   },
   palayan: {
     label: 'Palayan City',
-    polygon: [
+    polygon: [[
       [121.0500, 15.5700],
       [121.1400, 15.5700],
       [121.1400, 15.5100],
       [121.0500, 15.5100],
       [121.0500, 15.5700],
-    ],
+    ]],
   },
 }
 

@@ -117,7 +117,7 @@ export async function handleUpdateMerchantPricing({ data }: { data: { merchantId
   }
 }
 
-export async function handleGetMerchantsInPolygon({ data }: { data: { polygon: number[][] } }) {
+export async function handleGetMerchantsInPolygon({ data }: { data: { polygon: number[][][] } }) {
   try {
     await connectToDatabase()
 
@@ -142,7 +142,7 @@ export async function handleGetMerchantsInPolygon({ data }: { data: { polygon: n
   }
 }
 
-export async function handleGetOrderAnalytics({ data }: { data: { merchantId: string; startDate?: string; endDate?: string; polygon?: number[][] } }) {
+export async function handleGetOrderAnalytics({ data }: { data: { merchantId: string; startDate?: string; endDate?: string; polygon?: number[][][] } }) {
   try {
     await connectToDatabase()
 
@@ -158,10 +158,11 @@ export async function handleGetOrderAnalytics({ data }: { data: { merchantId: st
     }
 
     // Geofencing: filter orders whose deliveryLocation falls within the polygon
-    if (data.polygon && data.polygon.length >= 3) {
+    if (data.polygon && data.polygon.length >= 1) {
+      const coordinates = data.polygon[0]
       query['deliveryLocation'] = {
         $geoWithin: {
-          $polygon: data.polygon,
+          $polygon: coordinates,
         },
       }
     }

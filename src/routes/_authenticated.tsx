@@ -5,7 +5,7 @@ export const Route = createFileRoute('/_authenticated')({
     beforeLoad: async () => {
         const { userId } = await getAuthState()
         if (!userId) {
-            throw redirect({ to: '/sign-in' })
+            throw redirect({ to: '/sign-in/$' })
         }
         return { userId }
     },
