@@ -21,13 +21,14 @@ vi.mock('@/models/Rider.server', () => ({
 
 vi.mock('@/models/User.server', () => ({
     UserModel: {
+        findOne: vi.fn(),
         findOneAndUpdate: vi.fn(),
     },
 }))
 
 vi.mock('@/lib/db.server', () => ({
     connectToDatabase: vi.fn().mockResolvedValue(true),
-    withTransaction: vi.fn().mockImplementation((fn) => fn({})),
+    withTransaction: vi.fn().mockImplementation(async (fn) => fn({})),
 }))
 
 // Mock createServerFn and createMiddleware to bypass TanStack middleware and provide context
@@ -150,6 +151,7 @@ describe('Rider Server Functions', () => {
 
         it('should create rider and update user role in transaction', async () => {
             vi.mocked(RiderModel.findOne).mockResolvedValue(null as any)
+            vi.mocked(UserModel.findOne).mockResolvedValue(null as any)
             vi.mocked(RiderModel.create).mockResolvedValue([{ _id: mockRiderId }] as any)
             vi.mocked(UserModel.findOneAndUpdate).mockResolvedValue({} as any)
 
@@ -303,7 +305,9 @@ describe('Rider Server Functions', () => {
             expect(RiderModel.exists).toHaveBeenCalledWith({ userId: 'user_123' })
             expect(OrderModel.find).toHaveBeenCalledWith(expect.objectContaining({
                 status: 'pending',
-                'deliveryLocation.coordinates': expect.any(Object),
+                deliveryLocation: expect.objectContaining({
+                    $nearSphere: expect.any(Object),
+                }),
             }))
             expect(result).toHaveLength(1)
             expect(result[0]._id).toBe(mockOrderId.toString())

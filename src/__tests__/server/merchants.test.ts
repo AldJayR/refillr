@@ -33,6 +33,8 @@ vi.mock('@tanstack/react-router', () => ({
 
 import { getNearbyMerchants, getMerchantById, createMerchant, updateMerchantPricing, getMerchantsInPolygon, getOrderAnalytics, updateInventory } from '@/server/merchants.functions'
 import { MerchantModel } from '@/models/Merchant.server'
+import { RiderModel } from '@/models/Rider.server'
+import { UserModel } from '@/models/User.server'
 import { OrderModel } from '@/models/Order.server'
 
 const mockMerchant = {
@@ -52,6 +54,7 @@ const mockMerchant = {
 
 vi.mock('@/lib/db.server', () => ({
   connectToDatabase: vi.fn().mockResolvedValue({}),
+  withTransaction: vi.fn().mockImplementation(async (fn) => fn({})),
 }))
 
 vi.mock('@/models/Merchant.server', () => ({
@@ -61,6 +64,19 @@ vi.mock('@/models/Merchant.server', () => ({
     findById: vi.fn(),
     create: vi.fn(),
     findByIdAndUpdate: vi.fn(),
+  },
+}))
+
+vi.mock('@/models/Rider.server', () => ({
+  RiderModel: {
+    findOne: vi.fn(),
+  },
+}))
+
+vi.mock('@/models/User.server', () => ({
+  UserModel: {
+    findOne: vi.fn(),
+    findOneAndUpdate: vi.fn(),
   },
 }))
 
@@ -199,9 +215,12 @@ describe('createMerchant', () => {
     vi.clearAllMocks()
   })
 
-  it('should create merchant with valid data', async () => {
+  it('should create merchant and update user role in a transaction', async () => {
     vi.mocked(MerchantModel.findOne).mockResolvedValue(null as never)
-    vi.mocked(MerchantModel.create).mockResolvedValue(mockMerchant as never)
+    vi.mocked(RiderModel.findOne).mockResolvedValue(null as never)
+    vi.mocked(UserModel.findOne).mockResolvedValue({ role: 'customer' } as never)
+    vi.mocked(MerchantModel.create).mockResolvedValue([mockMerchant] as never)
+    vi.mocked(UserModel.findOneAndUpdate).mockResolvedValue({} as never)
 
     const result = await createMerchant({
       data: {
@@ -215,7 +234,28 @@ describe('createMerchant', () => {
     } as any)
 
     expect(MerchantModel.create).toHaveBeenCalled()
+    expect(UserModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { clerkId: 'user_123' },
+      { $set: { role: 'merchant' } },
+      { session: {} }
+    )
     expect(result).toBe(mockMerchant._id.toString())
+  })
+
+  it('should reject when the user is already a rider', async () => {
+    vi.mocked(MerchantModel.findOne).mockResolvedValue(null as never)
+    vi.mocked(RiderModel.findOne).mockResolvedValue({ _id: new Types.ObjectId() } as never)
+
+    await expect(createMerchant({
+      data: {
+        shopName: 'Test Shop',
+        doePermitNumber: 'DOE-001',
+        location: { type: 'Point', coordinates: [120.9842, 14.5995] },
+        brandsAccepted: ['Gasul'],
+        pricing: { '11kg': 1200 },
+        tankSizes: ['11kg'],
+      },
+    } as any)).rejects.toThrow('already registered as a rider')
   })
 })
 

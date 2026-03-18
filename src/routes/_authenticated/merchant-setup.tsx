@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createMerchant, getMyMerchant } from '@/server/merchants.functions'
+import { getMyAccountStatus } from '@/server/user.functions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,19 +16,17 @@ const ALL_BRANDS = ['Gasul', 'Solane', 'Petron'] as const
 
 export const Route = createFileRoute('/_authenticated/merchant-setup')({
   loader: async () => {
-    // If user already has a merchant, they shouldn't be here
-    const merchant = await getMyMerchant()
-    return { merchant }
+    const [merchant, accountStatus] = await Promise.all([getMyMerchant(), getMyAccountStatus({} as any)])
+    return { merchant, accountStatus }
   },
   component: MerchantSetup,
 })
 
 function MerchantSetup() {
-  const { merchant } = Route.useLoaderData()
+  const { merchant, accountStatus } = Route.useLoaderData()
   const navigate = useNavigate()
 
-  // If already registered, redirect to overview
-  if (merchant) {
+  if (merchant || accountStatus?.hasRider) {
     navigate({ to: '/merchant/overview' })
     return null
   }

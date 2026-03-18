@@ -10,10 +10,21 @@ import { Home, Menu, X, Truck, User, ShoppingBag, ListChecks, Flame, Store } fro
 import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 import { ModeToggle } from './ModeToggle'
+import { useQuery } from '@tanstack/react-query'
+import { getMyAccountStatus } from '@/server/user.functions'
+import { getPrimaryWorkspacePath, shouldShowSetupLinks } from '@/lib/account-access'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const { data: accountStatus } = useQuery({
+    queryKey: ['account-status'],
+    queryFn: () => getMyAccountStatus({} as any),
+    staleTime: 60_000,
+  })
+
+  const showSetupLinks = shouldShowSetupLinks(accountStatus ?? { role: 'customer', hasMerchant: false, hasRider: false })
+  const primaryWorkspacePath = getPrimaryWorkspacePath(accountStatus ?? { role: 'customer', hasMerchant: false, hasRider: false })
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,25 +61,31 @@ export default function Header() {
                 Find Dealers
               </Link>
             </Button>
-            <Button asChild variant="ghost">
-              <Link to="/merchant-setup">
-                For Merchants
-              </Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link to="/rider-setup">
-                For Riders
-              </Link>
-            </Button>
+            {showSetupLinks ? (
+              <>
+                <Button asChild variant="ghost">
+                  <Link to="/merchant-setup">For Merchants</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link to="/rider-setup">For Riders</Link>
+                </Button>
+              </>
+            ) : (
+              primaryWorkspacePath && (
+                <Button asChild variant="ghost">
+                  <Link to={primaryWorkspacePath}>{primaryWorkspacePath === '/merchant/overview' ? 'Merchant Dashboard' : 'Rider Workspace'}</Link>
+                </Button>
+              )
+            )}
           </nav>
 
           <div className="flex items-center gap-4">
             <SignedIn>
-              <Button asChild className="hidden md:flex" size="sm">
-                <Link to="/order/new">
-                  Order Now
-                </Link>
-              </Button>
+              {showSetupLinks && (
+                <Button asChild className="hidden md:flex" size="sm">
+                  <Link to="/order/new">Order Now</Link>
+                </Button>
+              )}
               <ModeToggle />
               <div className="hover-scale">
                 <UserButton
@@ -190,29 +207,33 @@ export default function Header() {
           </Link>
 
           <div className="pt-4 mt-4 border-t border-slate-800/50">
-            <Link
-              to="/rider"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
-              activeProps={{
-                className: 'flex items-center gap-3 p-3 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20 text-foreground font-semibold transform scale-[1.02]',
-              }}
-            >
-              <Truck size={20} />
-              <span>Rider Workspace</span>
-            </Link>
+            {primaryWorkspacePath && primaryWorkspacePath === '/rider' && (
+              <Link
+                to="/rider"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+                activeProps={{
+                  className: 'flex items-center gap-3 p-3 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20 text-foreground font-semibold transform scale-[1.02]',
+                }}
+              >
+                <Truck size={20} />
+                <span>Rider Workspace</span>
+              </Link>
+            )}
 
-            <Link
-              to="/merchant/overview"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
-              activeProps={{
-                className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
-              }}
-            >
-              <Store size={20} />
-              <span>Merchant Dashboard</span>
-            </Link>
+            {primaryWorkspacePath && primaryWorkspacePath === '/merchant/overview' && (
+              <Link
+                to="/merchant/overview"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+                activeProps={{
+                  className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
+                }}
+              >
+                <Store size={20} />
+                <span>Merchant Dashboard</span>
+              </Link>
+            )}
           </div>
         </nav>
 

@@ -1,6 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
 import { connectToDatabase } from '@/lib/db.server'
 import { UserModel } from '@/models/User.server'
+import { MerchantModel } from '@/models/Merchant.server'
+import { RiderModel } from '@/models/Rider.server'
 import { SaveAddressSchema } from '@/lib/schemas'
 import { requireAuthMiddleware } from './middleware'
 import { z } from 'zod'
@@ -14,6 +16,27 @@ export const getAuthState = createServerFn({ method: 'GET' }).handler(async () =
     const { userId } = await auth()
     return { userId }
 })
+
+/**
+ * Get the current user's role and operator profile flags.
+ */
+export const getMyAccountStatus = createServerFn({ method: 'GET' })
+    .middleware([requireAuthMiddleware])
+    .handler(async ({ context }) => {
+        await connectToDatabase()
+
+        const [user, merchant, rider] = await Promise.all([
+            UserModel.findOne({ clerkId: context.userId }).lean(),
+            MerchantModel.findOne({ ownerUserId: context.userId }).lean(),
+            RiderModel.findOne({ userId: context.userId }).lean(),
+        ])
+
+        return {
+            role: user?.role,
+            hasMerchant: Boolean(merchant),
+            hasRider: Boolean(rider),
+        }
+    })
 
 
 /**

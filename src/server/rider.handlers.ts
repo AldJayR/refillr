@@ -39,6 +39,11 @@ export async function handleCreateRider({ data, context }: { data: any; context:
             return { success: false as const, error: 'You already have a rider profile' }
         }
 
+        const existingMerchant = await UserModel.findOne({ clerkId: context.userId, role: 'merchant' })
+        if (existingMerchant) {
+            return { success: false as const, error: 'You are already registered as a merchant' }
+        }
+
         const riderId = await withTransaction(async (session) => {
             // Model.create() with a session requires an array
             const [rider] = await RiderModel.create([{
@@ -58,6 +63,9 @@ export async function handleCreateRider({ data, context }: { data: any; context:
         return riderId
     } catch (error) {
         console.error('[createRider]', error)
+        if (error instanceof Error && (error.message.includes('already have a rider profile') || error.message.includes('already registered as a merchant'))) {
+            throw error
+        }
         throw new Error('Failed to create rider profile')
     }
 }

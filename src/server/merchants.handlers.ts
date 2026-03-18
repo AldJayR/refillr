@@ -1,5 +1,7 @@
-import { connectToDatabase } from '@/lib/db.server'
+import { connectToDatabase, withTransaction } from '@/lib/db.server'
 import { MerchantModel } from '@/models/Merchant.server'
+import { RiderModel } from '@/models/Rider.server'
+import { UserModel } from '@/models/User.server'
 import { Types } from 'mongoose'
 import { OrderModel } from '@/models/Order.server'
 
@@ -84,13 +86,32 @@ export async function handleCreateMerchant({ data, context }: { data: any; conte
       throw new Error('You already have a merchant profile')
     }
 
-    const merchant = await MerchantModel.create({
-      ...data,
-      ownerUserId: context.userId,
+    const existingRider = await RiderModel.findOne({ userId: context.userId })
+    if (existingRider) {
+      throw new Error('You are already registered as a rider')
+    }
+
+    const merchantId = await withTransaction(async (session) => {
+      const [merchant] = await MerchantModel.create([{
+        ...data,
+        ownerUserId: context.userId,
+      }], { session })
+
+      await UserModel.findOneAndUpdate(
+        { clerkId: context.userId },
+        { $set: { role: 'merchant' } },
+        { session }
+      )
+
+      return merchant._id.toString()
     })
-    return merchant._id.toString()
+
+    return merchantId
   } catch (error) {
     console.error('[createMerchant]', error)
+    if (error instanceof Error && (error.message.includes('already have a merchant profile') || error.message.includes('already registered as a rider'))) {
+      throw error
+    }
     throw new Error('Failed to create merchant profile')
   }
 }

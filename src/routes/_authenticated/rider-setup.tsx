@@ -8,8 +8,10 @@ import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field
 import { toast } from 'sonner'
 import { Bike, User, FileText, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react'
 import { createRider } from '@/server/rider.functions'
+import { getMyAccountStatus } from '@/server/user.functions'
 
 export const Route = createFileRoute('/_authenticated/rider-setup')({
+  loader: async () => ({ accountStatus: await getMyAccountStatus({} as any) }),
   component: RiderSetup,
 })
 
@@ -34,6 +36,12 @@ function getFieldErrorMessage(error: unknown): string | null {
 function RiderSetup() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
+  const { accountStatus } = Route.useLoaderData()
+
+  if (accountStatus?.hasMerchant) {
+    navigate({ to: '/merchant/overview' })
+    return null
+  }
 
   const form = useForm({
     defaultValues: {
