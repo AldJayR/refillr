@@ -1,8 +1,9 @@
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { ClerkProvider } from '@clerk/tanstack-react-start'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import Header from '../components/Header'
 import { Toaster } from '../components/ui/sonner'
@@ -72,31 +73,41 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient())
+
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ClerkProvider>{children}</ClerkProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  )
+}
+
+export function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider>
-          <ClerkProvider>
-            <Header />
-            <main>
-              <Suspense fallback={
-                <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-sm text-slate-400">Loading...</p>
-                  </div>
+        <AppProviders>
+          <Header />
+          <main>
+            <Suspense fallback={
+              <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-slate-400">Loading...</p>
                 </div>
-              }>
-                {children}
-              </Suspense>
-            </main>
-            <Toaster position="top-right" />
-          </ClerkProvider>
-        </ThemeProvider>
+              </div>
+            }>
+              {children}
+            </Suspense>
+          </main>
+          <Toaster position="top-right" />
+        </AppProviders>
         {import.meta.env.DEV && (
             <TanStackDevtools
               config={{
