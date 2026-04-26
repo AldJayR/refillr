@@ -12,13 +12,19 @@ export const GeoPointSchema = z.object({
   coordinates: coordinateSchema,
 })
 
+export const GeoPolygonSchema = z.object({
+  type: z.literal('Polygon'),
+  coordinates: z.array(z.array(coordinateSchema)),
+})
+
 export const MerchantSchema = z.object({
+  _id: z.string().optional(), // Added for DB results
   shopName: z.string().min(1).max(200),
   doePermitNumber: z.string().min(1).max(100),
   location: GeoPointSchema,
   brandsAccepted: z.array(z.string()).default([]),
   pricing: z.record(z.string(), z.number()).default({}),
-  deliveryPolygon: z.any().optional(),
+  deliveryPolygon: GeoPolygonSchema.optional(),
   isOpen: z.boolean().default(true),
   isVerified: z.boolean().default(false),
   phoneNumber: z.string().optional(),
@@ -28,6 +34,9 @@ export const MerchantSchema = z.object({
   tankSizes: z.array(z.string()).default([]),
   deliveryRadiusMeters: z.number().default(5000),
 })
+
+export type Merchant = z.infer<typeof MerchantSchema>
+export type GeoPoint = z.infer<typeof GeoPointSchema>
 
 export const DeliveryLocationSchema = z.object({
   type: z.literal('Point'),
@@ -124,3 +133,38 @@ export const CreateRiderSchema = z.object({
   plateNumber: z.string().optional(),
   licenseNumber: z.string().optional(),
 })
+
+export type AccountStatus = {
+  role?: string
+  hasMerchant: boolean
+  hasRider: boolean
+}
+
+export interface Order {
+  _id: string
+  merchantId: string
+  userId: string
+  riderId?: string
+  tankBrand: string
+  tankSize: string
+  quantity: number
+  totalPrice: number
+  status: 'pending' | 'accepted' | 'dispatched' | 'delivered' | 'cancelled'
+  deliveryLocation: {
+    type: 'Point'
+    coordinates: [number, number]
+  }
+  deliveryAddress: string
+  createdAt?: string | Date
+  acceptedAt?: string | Date
+  dispatchedAt?: string | Date
+  deliveredAt?: string | Date
+}
+
+export interface OrderAnalytics {
+  totalOrders: number
+  totalRevenue: number
+  deliveredOrders: number
+  cancelledOrders: number
+  byBrand: Record<string, { count: number; revenue: number }>
+}

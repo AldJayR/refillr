@@ -1,18 +1,31 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useForm } from '@tanstack/react-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { toast } from 'sonner'
-import { Bike, User, FileText, ArrowRight, ArrowLeft, CheckCircle } from 'lucide-react'
+import { 
+  User, 
+  Bike, 
+  ArrowRight, 
+  ArrowLeft, 
+  FileText, 
+  CheckCircle
+} from 'lucide-react'
 import { createRider } from '@/server/rider.functions'
 import { getMyAccountStatus } from '@/server/user.functions'
+import { 
+  Field, 
+  FieldError, 
+  FieldGroup, 
+  FieldLabel 
+} from '@/components/ui/field'
+import type { AccountStatus } from '@/lib/schemas'
 
 export const Route = createFileRoute('/_authenticated/rider-setup')({
   loader: async () => {
-    const accountStatus = await getMyAccountStatus({} as any)
+    const accountStatus = await getMyAccountStatus({} as { data: undefined }) as AccountStatus
     if (accountStatus?.hasMerchant) {
       throw redirect({ to: '/merchant/overview' })
     }
@@ -22,22 +35,12 @@ export const Route = createFileRoute('/_authenticated/rider-setup')({
 })
 
 const VEHICLE_TYPES = [
-  { value: 'motorcycle', label: 'Motorcycle', icon: '🏍️' },
-  { value: 'bicycle', label: 'Bicycle', icon: '🚲' },
-  { value: 'sidecar', label: 'Sidecar', icon: '🛺' },
+  { label: 'Motorcycle', value: 'motorcycle' as const, icon: '🏍️' },
+  { label: 'Bicycle', value: 'bicycle' as const, icon: '🚲' },
+  { label: 'Sidecar', value: 'sidecar' as const, icon: '🛺' },
 ] as const
 
-type RiderVehicleType = (typeof VEHICLE_TYPES)[number]['value']
-
-function getFieldErrorMessage(error: unknown): string | null {
-  if (!error) return null
-  if (typeof error === 'string') return error
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const message = (error as { message?: unknown }).message
-    if (typeof message === 'string') return message
-  }
-  return null
-}
+type VehicleType = (typeof VEHICLE_TYPES)[number]['value']
 
 function RiderSetup() {
   const navigate = useNavigate()
@@ -48,31 +51,30 @@ function RiderSetup() {
       firstName: '',
       lastName: '',
       phoneNumber: '',
-      vehicleType: 'motorcycle' as RiderVehicleType,
+      vehicleType: 'motorcycle' as VehicleType,
       plateNumber: '',
       licenseNumber: '',
     },
     onSubmit: async ({ value }) => {
       try {
-        await createRider({
-          data: {
-            firstName: value.firstName.trim(),
-            lastName: value.lastName.trim(),
-            phoneNumber: value.phoneNumber.trim(),
-            vehicleType: value.vehicleType,
-            plateNumber: value.plateNumber.trim() || undefined,
-            licenseNumber: value.licenseNumber.trim() || undefined,
-          },
-        })
+        await createRider({ data: value })
         toast.success('Rider profile created!', {
           description: 'Welcome to the Refillr rider team.',
         })
         navigate({ to: '/rider' })
-      } catch (error: any) {
-        toast.error(error?.message || 'Failed to create rider profile')
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to create rider profile'
+        toast.error(message)
       }
     },
   })
+
+  const getFieldErrorMessage = (error: any) => {
+    if (!error) return null
+    if (typeof error === 'string') return error
+    if (Array.isArray(error)) return error[0]
+    return null
+  }
 
   return (
     <div className="flex items-center justify-center p-4">

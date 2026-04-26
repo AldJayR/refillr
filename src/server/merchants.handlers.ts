@@ -4,6 +4,7 @@ import { RiderModel } from '@/models/Rider.server'
 import { UserModel } from '@/models/User.server'
 import { Types } from 'mongoose'
 import { OrderModel } from '@/models/Order.server'
+import type { Merchant } from '@/lib/schemas'
 
 export async function handleGetNearbyMerchants({ data }: { data: { latitude: number; longitude: number; radiusMeters: number; brand?: string } }) {
   try {
@@ -76,7 +77,7 @@ export async function handleGetMyMerchant({ context }: { context: { userId: stri
   }
 }
 
-export async function handleCreateMerchant({ data, context }: { data: any; context: { userId: string } }) {
+export async function handleCreateMerchant({ data, context }: { data: Merchant; context: { userId: string } }) {
   try {
     await connectToDatabase()
 

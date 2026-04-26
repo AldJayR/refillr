@@ -3,8 +3,10 @@ import { OrderModel } from '@/models/Order.server'
 import { MerchantModel } from '@/models/Merchant.server'
 import { Types } from 'mongoose'
 import { point, distance, booleanPointInPolygon, polygon as turfPolygon } from '@turf/turf'
+import { z } from 'zod'
+import { CreateOrderSchema } from '@/lib/schemas'
 
-export async function handleCreateRefillRequest({ data, context }: { data: any; context: { userId: string } }) {
+export async function handleCreateRefillRequest({ data, context }: { data: z.infer<typeof CreateOrderSchema>; context: { userId: string } }) {
   try {
     await connectToDatabase()
 

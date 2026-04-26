@@ -112,7 +112,7 @@ export const saveAddress = createServerFn({ method: 'POST' })
                 // Push a new address entry (single atomic op)
                 await UserModel.updateOne(
                     { clerkId: context.userId },
-                    { $push: { savedAddresses: addressData } as any },
+                    { $push: { savedAddresses: addressData } },
                     { upsert: true }
                 )
             }

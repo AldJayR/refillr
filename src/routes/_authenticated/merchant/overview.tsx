@@ -14,6 +14,7 @@ import {
 import { Package, TrendingUp, Truck, XCircle, MapPin } from 'lucide-react'
 import TrustBadge from '@/components/TrustBadge'
 import { Button } from '@/components/ui/button'
+import type { Merchant, Order, OrderAnalytics } from '@/lib/schemas'
 
 // Preset polygon areas (Nueva Ecija cities)
 // Each polygon is a closed bounding-box ring of [lng, lat] coordinate pairs
@@ -63,11 +64,11 @@ const AREA_PRESETS: Record<string, { label: string; polygon: number[][][] }> = {
 
 export const Route = createFileRoute('/_authenticated/merchant/overview')({
   loader: async ({ context }) => {
-    const merchantId = (context as any).merchantId as string
+    const { merchantId } = context as { merchantId: string }
     const [analytics, orders, merchant] = await Promise.all([
-      getOrderAnalytics({ data: { merchantId } }),
-      getMerchantOrders({ data: { merchantId } }),
-      getMerchantById({ data: { merchantId } }),
+      getOrderAnalytics({ data: { merchantId } }) as Promise<OrderAnalytics>,
+      getMerchantOrders({ data: { merchantId } }) as Promise<Order[]>,
+      getMerchantById({ data: { merchantId } }) as Promise<Merchant>,
     ])
     return { analytics, orders, merchant, merchantId }
   },
@@ -78,7 +79,7 @@ function MerchantOverview() {
   const { analytics: initialAnalytics, orders, merchant, merchantId } = Route.useLoaderData()
 
   const [selectedArea, setSelectedArea] = useState('all')
-  const [analytics, setAnalytics] = useState(initialAnalytics)
+  const [analytics, setAnalytics] = useState<OrderAnalytics>(initialAnalytics)
   const [loadingArea, setLoadingArea] = useState(false)
 
   // Refetch analytics when area filter changes
@@ -98,7 +99,7 @@ function MerchantOverview() {
         polygon: preset.polygon,
       },
     })
-      .then((result) => setAnalytics(result))
+      .then((result) => setAnalytics(result as OrderAnalytics))
       .catch(() => {
         // On error, fall back to unfiltered
         setAnalytics(initialAnalytics)
@@ -108,7 +109,7 @@ function MerchantOverview() {
 
   const stats = [
     { label: 'Total Orders', value: analytics.totalOrders, icon: Package, color: 'text-blue-500' },
-    { label: 'Total Revenue', value: `\u20B1${analytics.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-500' },
+    { label: 'Total Revenue', value: `₱${analytics.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-500' },
     { label: 'Delivered', value: analytics.deliveredOrders, icon: Truck, color: 'text-orange-500' },
     { label: 'Cancelled', value: analytics.cancelledOrders, icon: XCircle, color: 'text-rose-500' },
   ]
@@ -178,8 +179,8 @@ function MerchantOverview() {
               <Card key={brand} className="bg-card border-border">
                 <CardContent className="pt-4">
                   <p className="text-sm text-muted-foreground">{brand}</p>
-                  <p className="text-xl font-bold text-foreground">{'\u20B1'}{(data as any).revenue.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">{(data as any).count} orders</p>
+                  <p className="text-xl font-bold text-foreground">₱{data.revenue.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{data.count} orders</p>
                 </CardContent>
               </Card>
             ))}
@@ -210,7 +211,7 @@ function MerchantOverview() {
                   </TableCell>
                 </TableRow>
               ) : (
-                orders.slice(0, 10).map((order: any) => (
+                orders.slice(0, 10).map((order) => (
                   <TableRow key={order._id} className="border-border hover:bg-muted/50">
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {order._id.slice(-6)}
@@ -219,7 +220,7 @@ function MerchantOverview() {
                     <TableCell className="text-muted-foreground">{order.tankSize}</TableCell>
                     <TableCell className="text-muted-foreground">{order.quantity}</TableCell>
                     <TableCell className="text-orange-500 font-semibold">
-                      {'\u20B1'}{order.totalPrice}
+                      ₱{order.totalPrice}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={order.status} />

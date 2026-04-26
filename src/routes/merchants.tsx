@@ -8,6 +8,7 @@ import { useGeolocation } from '@/hooks/useGeolocation'
 import { z } from 'zod'
 import { DEFAULT_LOCATION } from '@/lib/constants'
 import { toast } from 'sonner'
+import type { Merchant } from '@/lib/schemas'
 
 const searchSchema = z.object({
   lat: z.number().optional().default(DEFAULT_LOCATION.lat),
@@ -25,7 +26,7 @@ export const Route = createFileRoute('/merchants')({
 })
 
 function MerchantsList() {
-  const merchants = Route.useLoaderData()
+  const merchants = Route.useLoaderData() as Merchant[]
   const { lat, lng } = Route.useSearch()
   const navigate = Route.useNavigate()
 
@@ -42,8 +43,8 @@ function MerchantsList() {
     },
   })
 
-  const openMerchants = merchants.filter((m: any) => m.isOpen)
-  const closedMerchants = merchants.filter((m: any) => !m.isOpen)
+  const openMerchants = merchants.filter((m) => m.isOpen)
+  const closedMerchants = merchants.filter((m) => !m.isOpen)
 
   return (
     <div className="p-4">
@@ -69,7 +70,7 @@ function MerchantsList() {
                 Open Now ({openMerchants.length})
               </h2>
               <div className="space-y-3">
-                {openMerchants.map((merchant: any) => (
+                {openMerchants.map((merchant) => (
                   <div
                     key={merchant._id}
                     className="glass-card rounded-xl p-5 hover-scale animate-fade-in group cursor-pointer"
@@ -78,9 +79,9 @@ function MerchantsList() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-foreground">{merchant.shopName}</h3>
-                          <TrustBadge isVerified={merchant.isVerified} />
+                          <TrustBadge isVerified={merchant.isVerified || false} />
                           <TrustBadge
-                            isVerified={Object.keys((merchant as any).pricing || {}).length > 0}
+                            isVerified={Object.keys(merchant.pricing || {}).length > 0}
                             variant="fair-price"
                           />
                         </div>
@@ -93,7 +94,7 @@ function MerchantsList() {
                           <span className="flex items-center gap-1">
                             <MapPin size={14} />
                             {merchant.location?.coordinates
-                              ? formatDistance(lat, lng, merchant.location.coordinates)
+                              ? formatDistance(lat, lng, merchant.location.coordinates as [number, number])
                               : 'Nearby'}
                           </span>
                         </div>
@@ -103,7 +104,7 @@ function MerchantsList() {
                       </Button>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {merchant.brandsAccepted?.map((brand: string) => (
+                      {merchant.brandsAccepted?.map((brand) => (
                         <span
                           key={brand}
                           className="px-2 py-1 bg-muted rounded-md text-xs text-muted-foreground"
@@ -124,7 +125,7 @@ function MerchantsList() {
                 Closed ({closedMerchants.length})
               </h2>
               <div className="space-y-3">
-                {closedMerchants.map((merchant: any) => (
+                {closedMerchants.map((merchant) => (
                   <div
                     key={merchant._id}
                     className="glass-card rounded-xl p-5 opacity-60 hover-scale animate-fade-in"
@@ -133,9 +134,9 @@ function MerchantsList() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-foreground">{merchant.shopName}</h3>
-                          <TrustBadge isVerified={merchant.isVerified} />
+                          <TrustBadge isVerified={merchant.isVerified || false} />
                           <TrustBadge
-                            isVerified={Object.keys((merchant as any).pricing || {}).length > 0}
+                            isVerified={Object.keys(merchant.pricing || {}).length > 0}
                             variant="fair-price"
                           />
                         </div>
@@ -148,14 +149,14 @@ function MerchantsList() {
                           <span className="flex items-center gap-1">
                             <MapPin size={14} />
                             {merchant.location?.coordinates
-                              ? formatDistance(lat, lng, merchant.location.coordinates)
+                              ? formatDistance(lat, lng, merchant.location.coordinates as [number, number])
                               : 'Nearby'}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {merchant.brandsAccepted?.map((brand: string) => (
+                      {merchant.brandsAccepted?.map((brand) => (
                         <span
                           key={brand}
                           className="px-2 py-1 bg-muted rounded-md text-xs text-muted-foreground"

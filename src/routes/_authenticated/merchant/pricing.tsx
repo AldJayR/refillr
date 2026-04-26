@@ -10,12 +10,13 @@ import { toast } from 'sonner'
 import { DollarSign, Save, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TANK_BRANDS as BRANDS, TANK_SIZES as SIZES } from '@/lib/constants'
+import type { Merchant } from '@/lib/schemas'
 
 export const Route = createFileRoute('/_authenticated/merchant/pricing')({
   loader: async ({ context }) => {
-    const merchantId = (context as any).merchantId as string
+    const { merchantId } = context as { merchantId: string }
     const [merchant, doeConfig] = await Promise.all([
-      getMerchantById({ data: { merchantId } }),
+      getMerchantById({ data: { merchantId } }) as Promise<Merchant>,
       getDOEPrices(),
     ])
     return { merchant, doeConfig }
@@ -48,9 +49,16 @@ const COMPLIANCE_CONFIG: Record<ComplianceStatus, {
   'no-data': { border: 'border-border', icon: DollarSign, color: 'text-muted-foreground', label: '' },
 }
 
+interface DOEPricelistEntry {
+  brand: string
+  size: string
+  suggestedRetailPrice: number
+  maxRetailPrice: number
+}
+
 function PricingManagement() {
   const { merchant, doeConfig } = Route.useLoaderData()
-  const { merchantId } = Route.useRouteContext() as any
+  const { merchantId } = Route.useRouteContext() as { merchantId: string }
 
   const [pricing, setPricing] = useState<Record<string, number>>(
     merchant?.pricing ?? {}
@@ -62,7 +70,7 @@ function PricingManagement() {
   // Build DOE lookup map
   const doeLookup: Record<string, { suggestedRetailPrice: number; maxRetailPrice: number }> = {}
   if (doeConfig?.prices) {
-    for (const entry of doeConfig.prices as any[]) {
+    for (const entry of (doeConfig.prices as unknown as DOEPricelistEntry[])) {
       doeLookup[`${entry.brand}-${entry.size}`] = {
         suggestedRetailPrice: entry.suggestedRetailPrice,
         maxRetailPrice: entry.maxRetailPrice,
@@ -101,8 +109,8 @@ function PricingManagement() {
 
   if (!merchant) {
     return (
-      <div className="text-center py-12 text-slate-400">
-        <DollarSign size={48} className="mx-auto mb-4 text-slate-600" />
+      <div className="text-center py-12 text-muted-foreground">
+        <DollarSign size={48} className="mx-auto mb-4 text-muted-foreground/30" />
         <p>Merchant not found</p>
       </div>
     )
@@ -151,7 +159,7 @@ function PricingManagement() {
                 DOE Compliance: {compliantCount}/{totalPriced} prices within fair range
               </p>
               <p className="text-xs text-muted-foreground">
-                Rates effective {new Date(doeConfig.effectiveDate as any).toLocaleDateString('en-PH')} ({doeConfig.weekLabel})
+                Rates effective {new Date(doeConfig.effectiveDate).toLocaleDateString('en-PH')} ({doeConfig.weekLabel})
               </p>
             </div>
           </CardContent>

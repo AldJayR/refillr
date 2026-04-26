@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Package, Save } from 'lucide-react'
 import { TANK_SIZES as ALL_SIZES, TANK_BRANDS as ALL_BRANDS } from '@/lib/constants'
-import { Merchant } from '@/lib/schemas'
+import type { Merchant } from '@/lib/schemas'
 
 export const Route = createFileRoute('/_authenticated/merchant/inventory')({
   loader: ({ context }) => {

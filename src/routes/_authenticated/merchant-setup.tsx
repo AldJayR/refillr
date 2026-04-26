@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createMerchant, getMyMerchant } from '@/server/merchants.functions'
 import { getMyAccountStatus } from '@/server/user.functions'
@@ -16,7 +16,10 @@ const ALL_BRANDS = ['Gasul', 'Solane', 'Petron'] as const
 
 export const Route = createFileRoute('/_authenticated/merchant-setup')({
   loader: async () => {
-    const [merchant, accountStatus] = await Promise.all([getMyMerchant(), getMyAccountStatus({} as any)])
+    const [merchant, accountStatus] = await Promise.all([
+      getMyMerchant(), 
+      getMyAccountStatus({} as { data: undefined })
+    ])
     if (merchant || accountStatus?.hasRider) {
       throw redirect({ to: '/merchant/overview' })
     }
@@ -96,8 +99,9 @@ function SetupWizard() {
       })
       toast.success('Store profile created! Welcome to Refillr.')
       navigate({ to: '/merchant/overview' })
-    } catch (err: any) {
-      toast.error(err?.message || 'Failed to create store profile')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create store profile'
+      toast.error(message)
     } finally {
       setSubmitting(false)
     }

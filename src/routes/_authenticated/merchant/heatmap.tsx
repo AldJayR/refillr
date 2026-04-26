@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { DEFAULT_LOCATION } from '@/lib/constants'
 import { useTheme } from '@/components/ThemeProvider'
-import { Order } from '@/lib/schemas'
+import type { Order } from '@/lib/schemas'
 
 const DEFAULT_CENTER: [number, number] = [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat]
 

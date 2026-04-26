@@ -2,6 +2,8 @@ import { connectToDatabase, withTransaction } from '@/lib/db.server'
 import { OrderModel } from '@/models/Order.server'
 import { RiderModel } from '@/models/Rider.server'
 import { UserModel } from '@/models/User.server'
+import { z } from 'zod'
+import { CreateRiderSchema } from '@/lib/schemas'
 
 /**
  * Get the current user's rider profile.
@@ -30,7 +32,7 @@ export async function handleGetMyRider({ context }: { context: { userId: string 
  * Uses a MongoDB transaction to ensure both the rider creation and
  * user role update succeed or fail together (cross-collection atomicity).
  */
-export async function handleCreateRider({ data, context }: { data: any; context: { userId: string } }) {
+export async function handleCreateRider({ data, context }: { data: z.infer<typeof CreateRiderSchema>; context: { userId: string } }) {
     try {
         await connectToDatabase()
 
