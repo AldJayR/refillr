@@ -94,7 +94,7 @@ export function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <AppProviders>
           <Header />
-          <main>
+          <main className="pt-16">
             <Suspense fallback={
               <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">

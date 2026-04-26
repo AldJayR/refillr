@@ -236,7 +236,7 @@ function RiderDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 p-4">
+        <div className="p-4">
             <div className="max-w-md mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">

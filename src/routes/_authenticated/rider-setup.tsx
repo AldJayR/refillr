@@ -11,7 +11,13 @@ import { createRider } from '@/server/rider.functions'
 import { getMyAccountStatus } from '@/server/user.functions'
 
 export const Route = createFileRoute('/_authenticated/rider-setup')({
-  loader: async () => ({ accountStatus: await getMyAccountStatus({} as any) }),
+  loader: async () => {
+    const accountStatus = await getMyAccountStatus({} as any)
+    if (accountStatus?.hasMerchant) {
+      throw redirect({ to: '/merchant/overview' })
+    }
+    return { accountStatus }
+  },
   component: RiderSetup,
 })
 
@@ -36,12 +42,6 @@ function getFieldErrorMessage(error: unknown): string | null {
 function RiderSetup() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
-  const { accountStatus } = Route.useLoaderData()
-
-  if (accountStatus?.hasMerchant) {
-    navigate({ to: '/merchant/overview' })
-    return null
-  }
 
   const form = useForm({
     defaultValues: {
@@ -75,7 +75,7 @@ function RiderSetup() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">

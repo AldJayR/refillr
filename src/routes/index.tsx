@@ -102,11 +102,11 @@ function Dashboard() {
     })), [riders])
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-x-hidden">
+    <div className="relative overflow-x-hidden">
       {/* Background glow */}
       <div className="absolute top-36 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
       {/* Hero Section */}
-      <div className="mt-16 pt-4 pb-16 md:pt-16 md:pb-24 px-4 overflow-hidden">
+      <div className="pt-4 pb-16 md:pt-16 md:pb-24 px-4 overflow-hidden">
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <div className="animate-hero-fade-in hero-delay-0 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/60 text-primary text-sm mb-6">
             <Flame size={14} />

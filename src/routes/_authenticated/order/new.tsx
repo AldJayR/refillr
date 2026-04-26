@@ -156,7 +156,7 @@ function NewOrder() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 p-4">
+        <div className="p-4">
             <div className="max-w-md mx-auto">
                 <div className="flex items-center gap-4 mb-6">
                     <Link to="/">
@@ -333,6 +333,13 @@ function NewOrder() {
                                         </div>
                                     </div>
                                 )}
+
+                                {selectedBrand && selectedSize && unitPrice <= 0 && (
+                                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2 text-amber-400 text-xs">
+                                        <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                                        <p>This dealer hasn't set a price for {selectedBrand} {selectedSize}. Please select a different dealer or tank.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -362,22 +369,22 @@ function NewOrder() {
                                         <div className="space-y-2">
                                             {savedAddresses.map((addr) => {
                                                 const Icon = SAVED_ADDR_ICONS[addr.label] || MapPin
+                                                const fullAddr = [addr.address, addr.baranggay, addr.city]
+                                                    .filter(Boolean)
+                                                    .join(', ')
+
                                                 return (
                                                     <button
                                                         key={addr.label}
                                                         type="button"
                                                         onClick={() => {
                                                             setDeliveryCoords(addr.coordinates)
-                                                            const fullAddr = [addr.address, addr.baranggay, addr.city]
-                                                                .filter(Boolean)
-                                                                .join(', ')
                                                             setDeliveryAddress(fullAddr)
                                                             setError(null)
                                                         }}
                                                         className={cn(
                                                             'w-full text-left rounded-lg border p-3 flex items-center gap-3 transition-colors',
-                                                            deliveryAddress ===
-                                                                [addr.address, addr.baranggay, addr.city].filter(Boolean).join(', ')
+                                                            deliveryAddress === fullAddr
                                                                 ? 'border-orange-500 bg-orange-500/10'
                                                                 : 'border-slate-700 bg-slate-800/60 hover:bg-slate-800'
                                                         )}

@@ -17,20 +17,15 @@ const ALL_BRANDS = ['Gasul', 'Solane', 'Petron'] as const
 export const Route = createFileRoute('/_authenticated/merchant-setup')({
   loader: async () => {
     const [merchant, accountStatus] = await Promise.all([getMyMerchant(), getMyAccountStatus({} as any)])
+    if (merchant || accountStatus?.hasRider) {
+      throw redirect({ to: '/merchant/overview' })
+    }
     return { merchant, accountStatus }
   },
   component: MerchantSetup,
 })
 
 function MerchantSetup() {
-  const { merchant, accountStatus } = Route.useLoaderData()
-  const navigate = useNavigate()
-
-  if (merchant || accountStatus?.hasRider) {
-    navigate({ to: '/merchant/overview' })
-    return null
-  }
-
   return <SetupWizard />
 }
 
@@ -109,7 +104,7 @@ function SetupWizard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-6">
         {/* Header */}
         <div className="text-center">
