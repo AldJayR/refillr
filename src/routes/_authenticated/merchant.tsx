@@ -25,10 +25,10 @@ const NAV_ITEMS = [
 
 function MerchantLayout() {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col md:flex-row">
+    <div className="flex flex-col md:flex-row">
       {/* Sidebar - hidden on mobile, shown on md+ */}
       <aside className="hidden md:flex w-64 glass-sidebar flex-col shrink-0 sticky top-16 h-[calc(100vh-4rem)]">
-        <div className="p-6 border-b border-slate-800/50">
+        <div className="p-6 border-b border-border/50">
           <h2 className="text-lg font-bold font-heading flex items-center gap-2">
             <Flame className="text-orange-500" size={20} />
             <span className="text-gradient">Merchant Hub</span>
@@ -39,10 +39,10 @@ function MerchantLayout() {
             <Link
               key={item.to}
               to={item.to}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors text-sm"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors text-sm"
               activeProps={{
                 className:
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg bg-orange-500/10 text-orange-400 font-medium',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg bg-orange-500/10 text-orange-500 font-medium',
               }}
             >
               <item.icon size={18} />
@@ -53,15 +53,15 @@ function MerchantLayout() {
       </aside>
 
       {/* Mobile nav - shown on small screens */}
-      <nav className="md:hidden flex overflow-x-auto gap-1 p-2 glass-card border-b border-slate-800/50">
+      <nav className="md:hidden flex overflow-x-auto gap-1 p-2 glass-card border-b border-border/50">
         {NAV_ITEMS.map((item) => (
           <Link
             key={item.to}
             to={item.to}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white text-sm whitespace-nowrap"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground text-sm whitespace-nowrap"
             activeProps={{
               className:
-                'flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/10 text-orange-400 font-medium whitespace-nowrap',
+                'flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-500/10 text-orange-500 font-medium whitespace-nowrap',
             }}
           >
             <item.icon size={16} />

@@ -65,8 +65,8 @@ function InventoryManagement() {
 
   if (!merchant) {
     return (
-      <div className="text-center py-12 text-slate-400">
-        <Package size={48} className="mx-auto mb-4 text-slate-600" />
+      <div className="text-center py-12 text-muted-foreground">
+        <Package size={48} className="mx-auto mb-4 text-muted-foreground/30" />
         <p>Merchant not found</p>
       </div>
     )
@@ -75,27 +75,28 @@ function InventoryManagement() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">Inventory Management</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Toggle available tank sizes and brands. Changes are visible to customers immediately.
         </p>
       </div>
 
       {/* Tank Sizes */}
-      <Card className="bg-slate-900 border-slate-800">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white">Tank Sizes</CardTitle>
+          <CardTitle className="text-foreground">Tank Sizes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {ALL_SIZES.map((size) => (
             <div key={size} className="flex items-center justify-between">
-              <Label htmlFor={`size-${size}`} className="text-slate-300 cursor-pointer">
+              <Label htmlFor={`size-${size}`} className="text-foreground cursor-pointer">
                 {size}
               </Label>
               <Switch
                 id={`size-${size}`}
                 checked={activeSizes.includes(size)}
                 onCheckedChange={() => toggleSize(size)}
+                className="data-[state=checked]:bg-orange-500"
               />
             </div>
           ))}
@@ -103,20 +104,21 @@ function InventoryManagement() {
       </Card>
 
       {/* Brands */}
-      <Card className="bg-slate-900 border-slate-800">
+      <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-white">Accepted Brands</CardTitle>
+          <CardTitle className="text-foreground">Accepted Brands</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {ALL_BRANDS.map((brand) => (
             <div key={brand} className="flex items-center justify-between">
-              <Label htmlFor={`brand-${brand}`} className="text-slate-300 cursor-pointer">
+              <Label htmlFor={`brand-${brand}`} className="text-foreground cursor-pointer">
                 {brand}
               </Label>
               <Switch
                 id={`brand-${brand}`}
                 checked={activeBrands.includes(brand)}
                 onCheckedChange={() => toggleBrand(brand)}
+                className="data-[state=checked]:bg-orange-500"
               />
             </div>
           ))}
@@ -126,7 +128,7 @@ function InventoryManagement() {
       <Button
         onClick={handleSave}
         disabled={saving}
-        className="bg-orange-500 hover:bg-orange-600 w-full"
+        className="bg-orange-500 hover:bg-orange-600 text-white w-full"
       >
         <Save size={16} className="mr-2" />
         {saving ? 'Saving...' : 'Save Changes'}

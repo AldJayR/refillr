@@ -42,10 +42,10 @@ const COMPLIANCE_CONFIG: Record<ComplianceStatus, {
   color: string
   label: string
 }> = {
-  compliant: { border: 'border-green-500/50', icon: CheckCircle, color: 'text-green-500', label: 'Fair Price' },
-  'near-limit': { border: 'border-yellow-500/50', icon: AlertTriangle, color: 'text-yellow-500', label: 'Near Limit' },
-  overpriced: { border: 'border-red-500/50', icon: XCircle, color: 'text-red-500', label: 'Over Max' },
-  'no-data': { border: 'border-slate-700', icon: DollarSign, color: 'text-slate-500', label: '' },
+  compliant: { border: 'border-emerald-500/50', icon: CheckCircle, color: 'text-emerald-500', label: 'Fair Price' },
+  'near-limit': { border: 'border-amber-500/50', icon: AlertTriangle, color: 'text-amber-500', label: 'Near Limit' },
+  overpriced: { border: 'border-rose-500/50', icon: XCircle, color: 'text-rose-500', label: 'Over Max' },
+  'no-data': { border: 'border-border', icon: DollarSign, color: 'text-muted-foreground', label: '' },
 }
 
 function PricingManagement() {
@@ -126,8 +126,8 @@ function PricingManagement() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold text-white">Live Pricing</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Live Pricing</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Update your daily prices per brand and size. Prices are shown in PHP (₱).
         </p>
       </div>
@@ -137,20 +137,20 @@ function PricingManagement() {
         <Card className={cn(
           'border',
           compliantCount === totalPriced
-            ? 'bg-green-500/5 border-green-500/30'
-            : 'bg-yellow-500/5 border-yellow-500/30'
+            ? 'bg-emerald-500/5 border-emerald-500/30'
+            : 'bg-amber-500/5 border-amber-500/30'
         )}>
           <CardContent className="pt-4 flex items-center gap-3">
             {compliantCount === totalPriced ? (
-              <CheckCircle size={20} className="text-green-500 shrink-0" />
+              <CheckCircle size={20} className="text-emerald-500 shrink-0" />
             ) : (
-              <AlertTriangle size={20} className="text-yellow-500 shrink-0" />
+              <AlertTriangle size={20} className="text-amber-500 shrink-0" />
             )}
             <div>
-              <p className="text-sm text-white font-medium">
+              <p className="text-sm text-foreground font-medium">
                 DOE Compliance: {compliantCount}/{totalPriced} prices within fair range
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Rates effective {new Date(doeConfig.effectiveDate as any).toLocaleDateString('en-PH')} ({doeConfig.weekLabel})
               </p>
             </div>
@@ -159,9 +159,9 @@ function PricingManagement() {
       )}
 
       {BRANDS.map((brand) => (
-        <Card key={brand} className="bg-slate-900 border-slate-800">
+        <Card key={brand} className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white">{brand}</CardTitle>
+            <CardTitle className="text-foreground">{brand}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -174,11 +174,11 @@ function PricingManagement() {
 
                 return (
                   <div key={key}>
-                    <Label htmlFor={key} className="text-xs text-slate-400 mb-1 block">
+                    <Label htmlFor={key} className="text-xs text-muted-foreground mb-1 block">
                       {size}
                     </Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                         ₱
                       </span>
                       <Input
@@ -188,7 +188,7 @@ function PricingManagement() {
                         step={10}
                         value={pricing[key] ?? ''}
                         onChange={(e) => handlePriceChange(brand, size, e.target.value)}
-                        className={cn('pl-7 bg-slate-800', cfg.border)}
+                        className={cn('pl-7 bg-muted/50', cfg.border)}
                         placeholder="0"
                       />
                     </div>
@@ -211,7 +211,7 @@ function PricingManagement() {
       <Button
         onClick={handleSave}
         disabled={saving}
-        className="bg-orange-500 hover:bg-orange-600 w-full"
+        className="bg-orange-500 hover:bg-orange-600 text-white w-full"
       >
         <Save size={16} className="mr-2" />
         {saving ? 'Saving...' : 'Save All Prices'}

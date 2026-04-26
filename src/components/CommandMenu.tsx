@@ -124,12 +124,12 @@ export default function CommandMenu({ onSelect, className }: CommandMenuProps) {
       <button
         type="button"
         onClick={() => setDialogOpen(true)}
-        className="w-full flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-400 hover:bg-slate-700 transition-colors"
+        className="w-full flex items-center gap-2 rounded-lg border border-border bg-muted/50 backdrop-blur-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/80 transition-colors"
       >
         <span className="flex-1 text-left">
           Search &lsquo;Gasul 11kg&rsquo; or &lsquo;Solane 2.7kg&rsquo;…
         </span>
-        <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-slate-600 bg-slate-700 px-1.5 font-mono text-[10px] font-medium text-slate-400">
+        <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
           <span className="text-xs">⌘</span>K
         </kbd>
       </button>

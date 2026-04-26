@@ -55,9 +55,9 @@ function MerchantsList() {
                 <ArrowLeft size={20} />
               </Button>
             </Link>
-            <h1 className="text-xl font-bold text-white">Nearby Merchants</h1>
+            <h1 className="text-xl font-bold text-foreground">Nearby Merchants</h1>
           </div>
-          <Button variant="outline" size="icon" className="border-slate-700">
+          <Button variant="outline" size="icon" className="border-border">
             <Filter size={18} />
           </Button>
         </div>
@@ -65,7 +65,7 @@ function MerchantsList() {
         <div className="space-y-6">
           {openMerchants.length > 0 && (
             <div>
-              <h2 className="text-sm font-medium text-slate-400 mb-3">
+              <h2 className="text-sm font-medium text-muted-foreground mb-3">
                 Open Now ({openMerchants.length})
               </h2>
               <div className="space-y-3">
@@ -77,16 +77,16 @@ function MerchantsList() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-white">{merchant.shopName}</h3>
+                          <h3 className="font-semibold text-foreground">{merchant.shopName}</h3>
                           <TrustBadge isVerified={merchant.isVerified} />
                           <TrustBadge
                             isVerified={Object.keys((merchant as any).pricing || {}).length > 0}
                             variant="fair-price"
                           />
                         </div>
-                        <p className="text-sm text-slate-400 mt-1">{merchant.address || 'Address not listed'}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
-                          <span className="flex items-center gap-1 text-green-400">
+                        <p className="text-sm text-muted-foreground mt-1">{merchant.address || 'Address not listed'}</p>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1 text-emerald-500">
                             <Clock size={14} />
                             Open
                           </span>
@@ -98,7 +98,7 @@ function MerchantsList() {
                           </span>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="border-slate-700">
+                      <Button size="sm" variant="outline" className="border-border">
                         <Phone size={14} />
                       </Button>
                     </div>
@@ -106,7 +106,7 @@ function MerchantsList() {
                       {merchant.brandsAccepted?.map((brand: string) => (
                         <span
                           key={brand}
-                          className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300"
+                          className="px-2 py-1 bg-muted rounded-md text-xs text-muted-foreground"
                         >
                           {brand}
                         </span>
@@ -120,10 +120,10 @@ function MerchantsList() {
 
           {closedMerchants.length > 0 && (
             <div>
-              <h2 className="text-sm font-medium text-slate-400 mb-3">
+              <h2 className="text-sm font-medium text-muted-foreground mb-3">
                 Closed ({closedMerchants.length})
               </h2>
-              <div className="space-y-3 opacity-60">
+              <div className="space-y-3">
                 {closedMerchants.map((merchant: any) => (
                   <div
                     key={merchant._id}
@@ -132,16 +132,16 @@ function MerchantsList() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-white">{merchant.shopName}</h3>
+                          <h3 className="font-semibold text-foreground">{merchant.shopName}</h3>
                           <TrustBadge isVerified={merchant.isVerified} />
                           <TrustBadge
                             isVerified={Object.keys((merchant as any).pricing || {}).length > 0}
                             variant="fair-price"
                           />
                         </div>
-                        <p className="text-sm text-slate-400 mt-1">{merchant.address || 'Address not listed'}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
-                          <span className="flex items-center gap-1 text-red-400">
+                        <p className="text-sm text-muted-foreground mt-1">{merchant.address || 'Address not listed'}</p>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1 text-rose-500">
                             <Clock size={14} />
                             Closed
                           </span>
@@ -158,7 +158,7 @@ function MerchantsList() {
                       {merchant.brandsAccepted?.map((brand: string) => (
                         <span
                           key={brand}
-                          className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-300"
+                          className="px-2 py-1 bg-muted rounded-md text-xs text-muted-foreground"
                         >
                           {brand}
                         </span>

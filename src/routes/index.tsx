@@ -143,7 +143,7 @@ function Dashboard() {
         
         {/* Left Column: Map & Search */}
         <div className="space-y-6 flex flex-col h-150 lg:h-auto min-h-125">
-          <div className="relative flex-1 rounded-2xl overflow-hidden border border-slate-800 shadow-2xl shadow-black/50">
+          <div className="relative flex-1 rounded-2xl overflow-hidden border border-border shadow-2xl shadow-black/50">
             <Map
               markers={mapMarkers}
               riderMarkers={riderMarkers}
@@ -192,11 +192,11 @@ function Dashboard() {
 
           <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
             {filteredMerchants.length === 0 ? (
-              <div className="text-center py-12 px-4 border border-dashed border-slate-800 rounded-2xl bg-slate-900/50">
-                <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <MapPin className="text-slate-500" size={24} />
+              <div className="text-center py-12 px-4 border border-dashed border-border rounded-2xl bg-muted/30">
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
+                  <MapPin className="text-muted-foreground" size={24} />
                 </div>
-                <p className="text-slate-400 font-medium">
+                <p className="text-muted-foreground font-medium">
                   {activeFilter ? `No dealers carry ${activeFilter.label} nearby.` : 'No dealers found in your area.'}
                 </p>
                 {activeFilter && (
@@ -216,21 +216,21 @@ function Dashboard() {
                   "glass-card rounded-xl p-5 transition-all cursor-pointer group",
                   selectedMerchant === merchant._id 
                     ? "border-orange-500 bg-orange-500/5 shadow-[0_0_30px_-10px_rgba(249,115,22,0.2)]" 
-                    : "border-slate-800 hover:border-slate-700 hover:bg-slate-800/30"
+                    : "border-border hover:border-orange-500/50 hover:bg-accent/30"
                 )}
                 onClick={() => setSelectedMerchant(merchant._id)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-white text-lg group-hover:text-orange-400 transition-colors">
+                    <h3 className="font-semibold text-foreground text-lg group-hover:text-orange-500 transition-colors">
                       {merchant.shopName}
                     </h3>
-                    <div className="flex items-center gap-3 mt-1.5 text-sm text-slate-400">
+                    <div className="flex items-center gap-3 mt-1.5 text-sm text-muted-foreground">
                       <span className={cn(
                         "flex items-center gap-1.5 font-medium",
-                        merchant.isOpen ? "text-emerald-400" : "text-rose-400"
+                        merchant.isOpen ? "text-emerald-500" : "text-rose-500"
                       )}>
-                        <span className={cn("w-2 h-2 rounded-full", merchant.isOpen ? "bg-emerald-400" : "bg-rose-400")} />
+                        <span className={cn("w-2 h-2 rounded-full", merchant.isOpen ? "bg-emerald-500" : "bg-rose-500")} />
                         {merchant.isOpen ? 'Open' : 'Closed'}
                       </span>
                       <span className="flex items-center gap-1">
@@ -247,14 +247,14 @@ function Dashboard() {
                   {merchant.brandsAccepted?.map((brand: string) => (
                     <span
                       key={brand}
-                      className="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-md text-xs font-medium text-slate-300"
+                      className="px-2.5 py-1 bg-muted/50 border border-border rounded-md text-xs font-medium text-foreground"
                     >
                       {brand}
                     </span>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-slate-800/50">
+                <div className="flex items-center gap-2 pt-3 border-t border-border">
                   <TrustBadge isVerified={merchant.isVerified} showLabel />
                   <TrustBadge
                     isVerified={Object.keys(merchant.pricing || {}).length > 0}

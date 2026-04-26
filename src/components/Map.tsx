@@ -43,10 +43,17 @@ function buildMerchantPopupHtml(data: MerchantMarker): string {
   const verified = data.isVerified
     ? '<span class="text-xs text-green-600 font-medium">DOE Verified</span>'
     : ''
+  
+  // Use semantic classes that Mapbox popups can use if we handle the container
+  // For now, simple detection for standard Mapbox styling
+  const isDark = document.body.classList.contains('dark')
+  const textColor = isDark ? '#f8fafc' : '#0f172a'
+  const subColor = isDark ? '#94a3b8' : '#475569'
+
   return `
     <div class="p-2">
-      <h3 class="font-semibold text-slate-900">${name}</h3>
-      <p class="text-sm text-slate-600">${status}</p>
+      <h3 class="font-semibold" style="color: ${textColor}">${name}</h3>
+      <p class="text-sm" style="color: ${subColor}">${status}</p>
       ${verified}
     </div>
   `
@@ -55,9 +62,12 @@ function buildMerchantPopupHtml(data: MerchantMarker): string {
 /** Build HTML for a rider map popup. */
 function buildRiderPopupHtml(data: RiderMarker): string {
   const name = escapeHtml(data.name)
+  const isDark = document.body.classList.contains('dark')
+  const textColor = isDark ? '#f8fafc' : '#0f172a'
+
   return `
     <div class="p-2">
-      <h3 class="font-semibold text-slate-900">Rider: ${name}</h3>
+      <h3 class="font-semibold" style="color: ${textColor}">Rider: ${name}</h3>
       <p class="text-xs text-green-600 font-medium">Active Now</p>
     </div>
   `
@@ -96,9 +106,11 @@ export default function Map({
 
     mapboxgl.accessToken = accessToken || ''
 
+    const isDark = document.body.classList.contains('dark')
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: center,
       zoom: zoom,
       pitch: 45,

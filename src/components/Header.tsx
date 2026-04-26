@@ -135,7 +135,7 @@ export default function Header() {
       {/* Sidebar Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
+          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50 transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -146,11 +146,11 @@ export default function Header() {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-800/50">
+        <div className="flex items-center justify-between p-6 border-b border-border/50">
           <h2 className="text-xl font-bold font-heading text-gradient">Refillr Menu</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-slate-800/50 rounded-lg transition-colors hover-scale"
+            className="p-2 hover:bg-accent rounded-lg transition-colors hover-scale"
             aria-label="Close menu"
           >
             <X size={24} />
@@ -161,9 +161,9 @@ export default function Header() {
           <Link
             to="/"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
             }}
           >
             <Home size={20} />
@@ -173,9 +173,9 @@ export default function Header() {
           <Link
             to="/merchants"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
             }}
           >
             <ShoppingBag size={20} />
@@ -185,9 +185,9 @@ export default function Header() {
           <Link
             to="/orders"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
             }}
           >
             <ListChecks size={20} />
@@ -197,23 +197,23 @@ export default function Header() {
           <Link
             to="/profile"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent hover-scale transition-all"
             activeProps={{
-              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
+              className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-500 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
             }}
           >
             <User size={20} />
             <span>My Profile</span>
           </Link>
 
-          <div className="pt-4 mt-4 border-t border-slate-800/50">
+          <div className="pt-4 mt-4 border-t border-border/50">
             {primaryWorkspacePath && primaryWorkspacePath === '/rider' && (
               <Link
                 to="/rider"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent hover-scale transition-all"
                 activeProps={{
-                  className: 'flex items-center gap-3 p-3 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20 text-foreground font-semibold transform scale-[1.02]',
+                  className: 'flex items-center gap-3 p-3 rounded-xl bg-purple-600 shadow-lg shadow-purple-500/20 text-white font-semibold transform scale-[1.02]',
                 }}
               >
                 <Truck size={20} />
@@ -225,9 +225,9 @@ export default function Header() {
               <Link
                 to="/merchant/overview"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800/50 hover-scale transition-all"
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-accent hover-scale transition-all"
                 activeProps={{
-                  className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20 text-foreground font-semibold transform scale-[1.02]',
+                  className: 'flex items-center gap-3 p-3 rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20 text-white font-semibold transform scale-[1.02]',
                 }}
               >
                 <Store size={20} />
@@ -237,7 +237,7 @@ export default function Header() {
           </div>
         </nav>
 
-        <div className="p-6 border-t border-slate-800/50">
+        <div className="p-6 border-t border-border/50">
           <p className="text-xs text-slate-500 text-center">
             Refillr v1.0.0 • Verified LPG Delivery
           </p>

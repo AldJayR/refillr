@@ -150,12 +150,12 @@ function ProfilePage() {
                                 <ArrowLeft size={20} />
                             </Button>
                         </Link>
-                        <h1 className="text-xl font-bold text-white">My Addresses</h1>
+                        <h1 className="text-xl font-bold text-foreground">My Addresses</h1>
                     </div>
                     <Button
                         variant="outline"
                         size="sm"
-                        className="border-slate-700"
+                        className="border-border"
                         onClick={() => setShowForm(!showForm)}
                     >
                         <Plus size={14} className="mr-1" />
@@ -165,35 +165,35 @@ function ProfilePage() {
 
                 {/* Add Address Form */}
                 {showForm && (
-                    <div className="bg-slate-900 border border-orange-500/30 rounded-xl p-4 mb-6 space-y-4">
-                        <h3 className="text-white font-semibold">Add Address</h3>
+                    <div className="bg-card border border-orange-500/30 rounded-xl p-4 mb-6 shadow-lg animate-fade-in space-y-4">
+                        <h3 className="text-foreground font-semibold">Add Address</h3>
 
                         {/* GPS location status */}
                         <div className="flex items-center gap-2 text-xs">
                             {gpsStatus === 'detecting' && (
                                 <>
-                                    <Loader2 size={12} className="animate-spin text-orange-400" />
-                                    <span className="text-slate-400">Detecting your location...</span>
+                                    <Loader2 size={12} className="animate-spin text-orange-500" />
+                                    <span className="text-muted-foreground">Detecting your location...</span>
                                 </>
                             )}
                             {gpsStatus === 'success' && (
                                 <>
-                                    <Crosshair size={12} className="text-green-400" />
-                                    <span className="text-green-400">Location detected</span>
+                                    <Crosshair size={12} className="text-emerald-500" />
+                                    <span className="text-emerald-500">Location detected</span>
                                 </>
                             )}
                             {gpsStatus === 'failed' && (
                                 <>
-                                    <MapPin size={12} className="text-yellow-400" />
-                                    <span className="text-yellow-400">GPS unavailable — using default location</span>
+                                    <MapPin size={12} className="text-amber-500" />
+                                    <span className="text-amber-500">GPS unavailable — using default location</span>
                                 </>
                             )}
                         </div>
 
                         <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Type</label>
+                            <label className="text-sm text-muted-foreground mb-2 block">Type</label>
                             <Select value={label} onValueChange={(v) => setLabel(v as 'home' | 'office' | 'other')}>
-                                <SelectTrigger className="bg-slate-800 border-slate-700">
+                                <SelectTrigger className="bg-muted/50 border-border">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -205,32 +205,32 @@ function ProfilePage() {
                         </div>
 
                         <div>
-                            <label className="text-sm text-slate-400 mb-2 block">Address</label>
+                            <label className="text-sm text-muted-foreground mb-2 block">Address</label>
                             <Input
                                 placeholder="Street address"
                                 value={address}
                                 onChange={(e) => setAddress(e.target.value)}
-                                className="bg-slate-800 border-slate-700"
+                                className="bg-muted/50 border-border"
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className="text-sm text-slate-400 mb-2 block">Barangay</label>
+                                <label className="text-sm text-muted-foreground mb-2 block">Barangay</label>
                                 <Input
                                     placeholder="Barangay"
                                     value={baranggay}
                                     onChange={(e) => setBaranggay(e.target.value)}
-                                    className="bg-slate-800 border-slate-700"
+                                    className="bg-muted/50 border-border"
                                 />
                             </div>
                             <div>
-                                <label className="text-sm text-slate-400 mb-2 block">City</label>
+                                <label className="text-sm text-muted-foreground mb-2 block">City</label>
                                 <Input
                                     placeholder="City"
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
-                                    className="bg-slate-800 border-slate-700"
+                                    className="bg-muted/50 border-border"
                                 />
                             </div>
                         </div>
@@ -240,21 +240,21 @@ function ProfilePage() {
                                 type="checkbox"
                                 checked={isDefault}
                                 onChange={(e) => setIsDefault(e.target.checked)}
-                                className="rounded border-slate-700"
+                                className="rounded border-border"
                             />
-                            <span className="text-sm text-slate-300">Set as default address</span>
+                            <span className="text-sm text-muted-foreground">Set as default address</span>
                         </label>
 
                         <div className="flex gap-3">
                             <Button
                                 variant="outline"
-                                className="flex-1 border-slate-700"
+                                className="flex-1 border-border"
                                 onClick={() => { setShowForm(false); resetForm() }}
                             >
                                 Cancel
                             </Button>
                             <Button
-                                className="flex-1 bg-orange-500 hover:bg-orange-600"
+                                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
                                 disabled={!address || saving}
                                 onClick={handleSave}
                             >
@@ -267,13 +267,13 @@ function ProfilePage() {
                 {/* Address List */}
                 {addresses.length === 0 && !showForm ? (
                     <div className="text-center py-12">
-                        <MapPin size={48} className="text-slate-600 mx-auto mb-4" />
-                        <p className="text-slate-400 mb-2">No saved addresses</p>
-                        <p className="text-xs text-slate-500 mb-4">
+                        <MapPin size={48} className="text-muted-foreground/30 mx-auto mb-4" />
+                        <p className="text-muted-foreground mb-2">No saved addresses</p>
+                        <p className="text-xs text-muted-foreground mb-4">
                             Add your Home and Office locations for quick ordering
                         </p>
                         <Button
-                            className="bg-orange-500 hover:bg-orange-600"
+                            className="bg-orange-500 hover:bg-orange-600 text-white"
                             onClick={() => setShowForm(true)}
                         >
                             <Plus size={14} className="mr-2" />
@@ -284,27 +284,27 @@ function ProfilePage() {
                     <div className="space-y-3">
                         {addresses.map((addr) => {
                             const Icon = LABEL_ICONS[addr.label] || MapPin
-                            const color = LABEL_COLORS[addr.label] || 'text-slate-400'
+                            const color = LABEL_COLORS[addr.label] || 'text-muted-foreground'
                             return (
                                 <div
                                     key={addr.label}
-                                    className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors"
+                                    className="bg-card border border-border rounded-xl p-4 hover:border-orange-500/50 transition-colors shadow-sm"
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-start gap-3">
                                             <Icon size={20} className={cn('mt-0.5', color)} />
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <h3 className="text-white font-semibold capitalize">{addr.label}</h3>
+                                                    <h3 className="text-foreground font-semibold capitalize">{addr.label}</h3>
                                                     {addr.isDefault && (
-                                                        <span className="flex items-center gap-1 text-xs text-orange-400">
+                                                        <span className="flex items-center gap-1 text-xs text-orange-500">
                                                             <Star size={10} /> Default
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-sm text-slate-400 mt-1">{addr.address}</p>
+                                                <p className="text-sm text-muted-foreground mt-1">{addr.address}</p>
                                                 {(addr.baranggay || addr.city) && (
-                                                    <p className="text-xs text-slate-500 mt-0.5">
+                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">
                                                         {[addr.baranggay, addr.city].filter(Boolean).join(', ')}
                                                     </p>
                                                 )}
@@ -313,7 +313,7 @@ function ProfilePage() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="text-slate-500 hover:text-red-400"
+                                            className="text-muted-foreground hover:text-rose-500"
                                             onClick={() => handleDelete(addr.label)}
                                         >
                                             <Trash2 size={16} />

@@ -112,7 +112,7 @@ function SetupWizard() {
             <Flame className="text-orange-500" size={28} />
             <h1 className="text-2xl font-bold text-gradient font-heading">Register Your Store</h1>
           </div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Set up your LPG dealer profile in 3 easy steps
           </p>
         </div>
@@ -126,15 +126,15 @@ function SetupWizard() {
                   step === s
                     ? 'bg-orange-500 text-white'
                     : step > s
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-slate-800 text-slate-500'
+                      ? 'bg-emerald-500/20 text-emerald-500'
+                      : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {step > s ? '\u2713' : s}
               </div>
               {s < 3 && (
                 <div
-                  className={`w-12 h-0.5 ${step > s ? 'bg-green-500/50' : 'bg-slate-800'}`}
+                  className={`w-12 h-0.5 ${step > s ? 'bg-emerald-500/50' : 'bg-muted'}`}
                 />
               )}
             </div>
@@ -143,45 +143,45 @@ function SetupWizard() {
 
         {/* Step 1: Basic Info */}
         {step === 1 && (
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Store size={20} className="text-orange-400" />
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Store size={20} className="text-orange-500" />
                 Store Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="shopName" className="text-slate-300">
-                  Shop Name <span className="text-red-400">*</span>
+                <Label htmlFor="shopName" className="text-foreground">
+                  Shop Name <span className="text-rose-500">*</span>
                 </Label>
                 <Input
                   id="shopName"
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
                   placeholder="e.g. Juan's LPG Supply"
-                  className="bg-slate-800 border-slate-700 mt-1"
+                  className="bg-muted/50 border-border mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="doePermit" className="text-slate-300">
-                  DOE Permit Number <span className="text-red-400">*</span>
+                <Label htmlFor="doePermit" className="text-foreground">
+                  DOE Permit Number <span className="text-rose-500">*</span>
                 </Label>
                 <Input
                   id="doePermit"
                   value={doePermitNumber}
                   onChange={(e) => setDoePermitNumber(e.target.value)}
                   placeholder="e.g. DOE-LPG-2024-XXXXX"
-                  className="bg-slate-800 border-slate-700 mt-1"
+                  className="bg-muted/50 border-border mt-1"
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Required for DOE-verified badge
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="phone" className="text-slate-300">
+                <Label htmlFor="phone" className="text-foreground">
                   Phone Number
                 </Label>
                 <Input
@@ -189,7 +189,7 @@ function SetupWizard() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="e.g. 09171234567"
-                  className="bg-slate-800 border-slate-700 mt-1"
+                  className="bg-muted/50 border-border mt-1"
                 />
               </div>
 
@@ -197,7 +197,7 @@ function SetupWizard() {
                 <Button
                   onClick={() => setStep(2)}
                   disabled={!canProceedStep1}
-                  className="bg-orange-500 hover:bg-orange-600"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   Next
                   <ChevronRight size={16} className="ml-1" />
@@ -209,19 +209,19 @@ function SetupWizard() {
 
         {/* Step 2: Location */}
         {step === 2 && (
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <MapPin size={20} className="text-orange-400" />
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <MapPin size={20} className="text-orange-500" />
                 Store Location
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-slate-400 mb-2">
+                <p className="text-sm text-muted-foreground mb-2">
                   Click on the map to set your store location
                 </p>
-                <div className="rounded-lg overflow-hidden border border-slate-800" style={{ height: 300 }}>
+                <div className="rounded-lg overflow-hidden border border-border" style={{ height: 300 }}>
                   <Map
                     center={coordinates || undefined}
                     zoom={14}
@@ -242,28 +242,28 @@ function SetupWizard() {
                   />
                 </div>
                 {coordinates && (
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Coordinates: {coordinates[1].toFixed(6)}, {coordinates[0].toFixed(6)}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="address" className="text-slate-300">
-                  Street Address <span className="text-red-400">*</span>
+                <Label htmlFor="address" className="text-foreground">
+                  Street Address <span className="text-rose-500">*</span>
                 </Label>
                 <Input
                   id="address"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="e.g. 123 Rizal St."
-                  className="bg-slate-800 border-slate-700 mt-1"
+                  className="bg-muted/50 border-border mt-1"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="baranggay" className="text-slate-300">
+                  <Label htmlFor="baranggay" className="text-foreground">
                     Barangay
                   </Label>
                   <Input
@@ -271,11 +271,11 @@ function SetupWizard() {
                     value={baranggay}
                     onChange={(e) => setBaranggay(e.target.value)}
                     placeholder="e.g. Brgy. San Jose"
-                    className="bg-slate-800 border-slate-700 mt-1"
+                    className="bg-muted/50 border-border mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="city" className="text-slate-300">
+                  <Label htmlFor="city" className="text-foreground">
                     City / Municipality
                   </Label>
                   <Input
@@ -283,7 +283,7 @@ function SetupWizard() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="e.g. Quezon City"
-                    className="bg-slate-800 border-slate-700 mt-1"
+                    className="bg-muted/50 border-border mt-1"
                   />
                 </div>
               </div>
@@ -292,7 +292,7 @@ function SetupWizard() {
                 <Button
                   variant="outline"
                   onClick={() => setStep(1)}
-                  className="border-slate-700 text-slate-300"
+                  className="border-border text-foreground"
                 >
                   <ChevronLeft size={16} className="mr-1" />
                   Back
@@ -300,7 +300,7 @@ function SetupWizard() {
                 <Button
                   onClick={() => setStep(3)}
                   disabled={!canProceedStep2}
-                  className="bg-orange-500 hover:bg-orange-600"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   Next
                   <ChevronRight size={16} className="ml-1" />
@@ -312,29 +312,30 @@ function SetupWizard() {
 
         {/* Step 3: Inventory & Submit */}
         {step === 3 && (
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Flame size={20} className="text-orange-400" />
+              <CardTitle className="text-foreground flex items-center gap-2">
+                <Flame size={20} className="text-orange-500" />
                 Brands & Tank Sizes
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Brands */}
               <div>
-                <p className="text-sm text-slate-400 mb-3">
-                  Select the brands you carry <span className="text-red-400">*</span>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Select the brands you carry <span className="text-rose-500">*</span>
                 </p>
                 <div className="space-y-3">
                   {ALL_BRANDS.map((brand) => (
                     <div key={brand} className="flex items-center justify-between">
-                      <Label htmlFor={`brand-${brand}`} className="text-slate-300 cursor-pointer">
+                      <Label htmlFor={`brand-${brand}`} className="text-foreground cursor-pointer">
                         {brand}
                       </Label>
                       <Switch
                         id={`brand-${brand}`}
                         checked={brands.includes(brand)}
                         onCheckedChange={() => toggleBrand(brand)}
+                        className="data-[state=checked]:bg-orange-500"
                       />
                     </div>
                   ))}
@@ -343,19 +344,20 @@ function SetupWizard() {
 
               {/* Tank Sizes */}
               <div>
-                <p className="text-sm text-slate-400 mb-3">
-                  Select available tank sizes <span className="text-red-400">*</span>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Select available tank sizes <span className="text-rose-500">*</span>
                 </p>
                 <div className="space-y-3">
                   {ALL_SIZES.map((size) => (
                     <div key={size} className="flex items-center justify-between">
-                      <Label htmlFor={`size-${size}`} className="text-slate-300 cursor-pointer">
+                      <Label htmlFor={`size-${size}`} className="text-foreground cursor-pointer">
                         {size}
                       </Label>
                       <Switch
                         id={`size-${size}`}
                         checked={tankSizes.includes(size)}
                         onCheckedChange={() => toggleSize(size)}
+                        className="data-[state=checked]:bg-orange-500"
                       />
                     </div>
                   ))}
@@ -366,7 +368,7 @@ function SetupWizard() {
                 <Button
                   variant="outline"
                   onClick={() => setStep(2)}
-                  className="border-slate-700 text-slate-300"
+                  className="border-border text-foreground"
                 >
                   <ChevronLeft size={16} className="mr-1" />
                   Back
@@ -374,7 +376,7 @@ function SetupWizard() {
                 <Button
                   onClick={handleSubmit}
                   disabled={!canSubmit || submitting}
-                  className="bg-orange-500 hover:bg-orange-600"
+                  className="bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   {submitting ? 'Creating...' : 'Create Store Profile'}
                 </Button>

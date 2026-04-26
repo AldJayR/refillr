@@ -107,10 +107,10 @@ function MerchantOverview() {
   }, [selectedArea, merchantId, initialAnalytics])
 
   const stats = [
-    { label: 'Total Orders', value: analytics.totalOrders, icon: Package, color: 'text-blue-400' },
-    { label: 'Total Revenue', value: `\u20B1${analytics.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
-    { label: 'Delivered', value: analytics.deliveredOrders, icon: Truck, color: 'text-orange-400' },
-    { label: 'Cancelled', value: analytics.cancelledOrders, icon: XCircle, color: 'text-red-400' },
+    { label: 'Total Orders', value: analytics.totalOrders, icon: Package, color: 'text-blue-500' },
+    { label: 'Total Revenue', value: `\u20B1${analytics.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-emerald-500' },
+    { label: 'Delivered', value: analytics.deliveredOrders, icon: Truck, color: 'text-orange-500' },
+    { label: 'Cancelled', value: analytics.cancelledOrders, icon: XCircle, color: 'text-rose-500' },
   ]
 
   return (
@@ -118,10 +118,10 @@ function MerchantOverview() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Overview</h1>
+          <h1 className="text-2xl font-bold text-foreground">Overview</h1>
           {merchant && (
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-slate-400">{merchant.shopName}</span>
+              <span className="text-sm text-muted-foreground">{merchant.shopName}</span>
               <TrustBadge isVerified={merchant.isVerified ?? false} showLabel />
             </div>
           )}
@@ -129,8 +129,8 @@ function MerchantOverview() {
 
         {/* Area Filter */}
         <div className="flex items-center gap-2">
-          <MapPin size={16} className="text-slate-400" />
-          <span className="text-xs text-slate-500">Filter by area:</span>
+          <MapPin size={16} className="text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">Filter by area:</span>
           <div className="flex gap-1 flex-wrap">
             {Object.entries(AREA_PRESETS).map(([key, preset]) => (
               <Button
@@ -141,7 +141,7 @@ function MerchantOverview() {
                 className={
                   selectedArea === key
                     ? 'bg-orange-500 hover:bg-orange-600 text-white text-xs h-7'
-                    : 'border-slate-700 text-slate-400 text-xs h-7'
+                    : 'border-border text-muted-foreground text-xs h-7'
                 }
               >
                 {preset.label}
@@ -149,7 +149,7 @@ function MerchantOverview() {
             ))}
           </div>
           {loadingArea && (
-            <span className="text-xs text-slate-500 animate-pulse">Loading...</span>
+            <span className="text-xs text-muted-foreground animate-pulse">Loading...</span>
           )}
         </div>
       </div>
@@ -157,13 +157,13 @@ function MerchantOverview() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <Card key={stat.label} className="bg-slate-900 border-slate-800">
+          <Card key={stat.label} className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-400">{stat.label}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
               <stat.icon size={18} className={stat.color} />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
+              <p className="text-2xl font-bold text-foreground">{stat.value}</p>
             </CardContent>
           </Card>
         ))}
@@ -172,14 +172,14 @@ function MerchantOverview() {
       {/* Revenue by Brand */}
       {Object.keys(analytics.byBrand).length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-white mb-3">Revenue by Brand</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-3">Revenue by Brand</h2>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {Object.entries(analytics.byBrand).map(([brand, data]) => (
-              <Card key={brand} className="bg-slate-900 border-slate-800">
+              <Card key={brand} className="bg-card border-border">
                 <CardContent className="pt-4">
-                  <p className="text-sm text-slate-400">{brand}</p>
-                  <p className="text-xl font-bold text-white">{'\u20B1'}{(data as any).revenue.toLocaleString()}</p>
-                  <p className="text-xs text-slate-500">{(data as any).count} orders</p>
+                  <p className="text-sm text-muted-foreground">{brand}</p>
+                  <p className="text-xl font-bold text-foreground">{'\u20B1'}{(data as any).revenue.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">{(data as any).count} orders</p>
                 </CardContent>
               </Card>
             ))}
@@ -189,36 +189,36 @@ function MerchantOverview() {
 
       {/* Recent Orders Table */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-3">Recent Orders</h2>
-        <div className="rounded-lg border border-slate-800 overflow-hidden">
+        <h2 className="text-lg font-semibold text-foreground mb-3">Recent Orders</h2>
+        <div className="rounded-lg border border-border overflow-hidden bg-card">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-800 hover:bg-slate-900/50">
-                <TableHead className="text-slate-400">Order ID</TableHead>
-                <TableHead className="text-slate-400">Brand</TableHead>
-                <TableHead className="text-slate-400">Size</TableHead>
-                <TableHead className="text-slate-400">Qty</TableHead>
-                <TableHead className="text-slate-400">Total</TableHead>
-                <TableHead className="text-slate-400">Status</TableHead>
+              <TableRow className="border-border hover:bg-muted/50">
+                <TableHead className="text-muted-foreground">Order ID</TableHead>
+                <TableHead className="text-muted-foreground">Brand</TableHead>
+                <TableHead className="text-muted-foreground">Size</TableHead>
+                <TableHead className="text-muted-foreground">Qty</TableHead>
+                <TableHead className="text-muted-foreground">Total</TableHead>
+                <TableHead className="text-muted-foreground">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-slate-500 py-8">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                     No orders yet
                   </TableCell>
                 </TableRow>
               ) : (
                 orders.slice(0, 10).map((order: any) => (
-                  <TableRow key={order._id} className="border-slate-800 hover:bg-slate-900/50">
-                    <TableCell className="font-mono text-xs text-slate-400">
+                  <TableRow key={order._id} className="border-border hover:bg-muted/50">
+                    <TableCell className="font-mono text-xs text-muted-foreground">
                       {order._id.slice(-6)}
                     </TableCell>
-                    <TableCell className="text-white">{order.tankBrand}</TableCell>
-                    <TableCell className="text-slate-300">{order.tankSize}</TableCell>
-                    <TableCell className="text-slate-300">{order.quantity}</TableCell>
-                    <TableCell className="text-orange-400 font-semibold">
+                    <TableCell className="text-foreground">{order.tankBrand}</TableCell>
+                    <TableCell className="text-muted-foreground">{order.tankSize}</TableCell>
+                    <TableCell className="text-muted-foreground">{order.quantity}</TableCell>
+                    <TableCell className="text-orange-500 font-semibold">
                       {'\u20B1'}{order.totalPrice}
                     </TableCell>
                     <TableCell>
@@ -237,14 +237,14 @@ function MerchantOverview() {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    pending: 'bg-yellow-500/10 text-yellow-400',
-    accepted: 'bg-blue-500/10 text-blue-400',
-    dispatched: 'bg-purple-500/10 text-purple-400',
-    delivered: 'bg-green-500/10 text-green-400',
-    cancelled: 'bg-red-500/10 text-red-400',
+    pending: 'bg-yellow-500/10 text-amber-600 dark:text-yellow-400',
+    accepted: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    dispatched: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+    delivered: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    cancelled: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
   }
   return (
-    <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${colors[status] || 'bg-slate-800 text-slate-400'}`}>
+    <span className={`px-2 py-1 rounded-md text-xs font-medium capitalize ${colors[status] || 'bg-muted text-muted-foreground'}`}>
       {status}
     </span>
   )

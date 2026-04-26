@@ -247,12 +247,12 @@ function RiderDashboard() {
                             </Button>
                         </Link>
                         <div>
-                            <h1 className="text-xl font-bold text-white">Rider Dashboard</h1>
-                            <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <h1 className="text-xl font-bold text-foreground">Rider Dashboard</h1>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 {isOnline ? (
-                                    <><Wifi size={10} className="text-green-500" /> Online</>
+                                    <><Wifi size={10} className="text-emerald-500" /> Online</>
                                 ) : (
-                                    <><WifiOff size={10} className="text-slate-500" /> Offline</>
+                                    <><WifiOff size={10} className="text-muted-foreground" /> Offline</>
                                 )}
                                 {' • '}
                                 {lat.toFixed(4)}°N, {lng.toFixed(4)}°E
@@ -264,13 +264,13 @@ function RiderDashboard() {
                             <Switch
                                 checked={isOnline}
                                 onCheckedChange={handleStatusToggle}
-                                className="data-[state=checked]:bg-green-500"
+                                className="data-[state=checked]:bg-emerald-500"
                             />
                         </div>
                         <Button
                             variant="outline"
                             size="icon"
-                            className="border-slate-700"
+                            className="border-border"
                             onClick={fetchOrders}
                             disabled={isFetching}
                         >
@@ -282,7 +282,7 @@ function RiderDashboard() {
                 {/* Active Orders */}
                 {activeOrders.length > 0 && (
                     <div className="mb-6">
-                        <h2 className="text-sm font-medium text-orange-400 mb-3 flex items-center gap-2">
+                        <h2 className="text-sm font-medium text-orange-500 mb-3 flex items-center gap-2">
                             <Truck size={14} />
                             My Active Orders ({activeOrders.length})
                         </h2>
@@ -292,31 +292,31 @@ function RiderDashboard() {
                                 return (
                                     <div
                                         key={order._id}
-                                        className="bg-slate-900 border border-orange-500/30 rounded-xl p-4"
+                                        className="bg-card border border-orange-500/30 rounded-xl p-4 shadow-sm"
                                     >
                                         <div className="flex items-start justify-between mb-3">
                                             <div>
                                                 <div className="flex items-center gap-2">
                                                     <StatusIcon size={16} className="text-orange-500" />
-                                                    <span className="text-sm font-medium text-orange-400 capitalize">
+                                                    <span className="text-sm font-medium text-orange-500 capitalize">
                                                         {order.status}
                                                     </span>
                                                 </div>
-                                                <p className="text-white font-semibold mt-1">
+                                                <p className="text-foreground font-semibold mt-1">
                                                     {order.tankBrand} {order.tankSize} ×{order.quantity}
                                                 </p>
                                             </div>
                                             <span className="text-orange-500 font-bold">₱{order.totalPrice}</span>
                                         </div>
 
-                                        <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                                             <MapPin size={14} />
                                             <span className="truncate">{order.deliveryAddress}</span>
                                         </div>
 
                                         {order.status === 'accepted' && (
                                             <Button
-                                                className="w-full bg-purple-600 hover:bg-purple-700"
+                                                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
                                                 disabled={actionLoading === order._id}
                                                 onClick={() => handleDispatch(order._id)}
                                             >
@@ -325,7 +325,7 @@ function RiderDashboard() {
                                         )}
                                         {order.status === 'dispatched' && (
                                             <Button
-                                                className="w-full bg-green-600 hover:bg-green-700"
+                                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                                                 disabled={actionLoading === order._id}
                                                 onClick={() => handleDeliver(order._id)}
                                             >
@@ -341,16 +341,16 @@ function RiderDashboard() {
 
                 {/* Available Orders */}
                 <div>
-                    <h2 className="text-sm font-medium text-slate-400 mb-3 flex items-center gap-2">
+                    <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                         <Package size={14} />
                         Available Orders ({orders.length})
                     </h2>
 
                     {orders.length === 0 ? (
                         <div className="text-center py-12">
-                            <Package size={48} className="text-slate-600 mx-auto mb-4" />
-                            <p className="text-slate-400 mb-2">No pending orders nearby</p>
-                            <p className="text-xs text-slate-500">
+                            <Package size={48} className="text-muted-foreground/30 mx-auto mb-4" />
+                            <p className="text-muted-foreground mb-2">No pending orders nearby</p>
+                            <p className="text-xs text-muted-foreground/70">
                                 Orders within 10km of your location will appear here
                             </p>
                         </div>
@@ -359,27 +359,27 @@ function RiderDashboard() {
                             {orders.map((order) => (
                                 <div
                                     key={order._id}
-                                    className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-orange-500/30 transition-colors"
+                                    className="bg-card border border-border rounded-xl p-4 hover:border-orange-500/30 transition-colors shadow-sm"
                                 >
                                     <div className="flex items-start justify-between mb-2">
                                         <div>
-                                            <p className="text-white font-semibold">
+                                            <p className="text-foreground font-semibold">
                                                 {order.tankBrand} {order.tankSize} ×{order.quantity}
                                             </p>
-                                            <p className="text-xs text-slate-500 mt-1">
+                                            <p className="text-xs text-muted-foreground mt-1">
                                                 {order.createdAt ? formatTime(order.createdAt) : 'Just now'}
                                             </p>
                                         </div>
                                         <span className="text-orange-500 font-bold">₱{order.totalPrice}</span>
                                     </div>
 
-                                    <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                                         <MapPin size={14} className="shrink-0" />
                                         <span className="truncate">{order.deliveryAddress}</span>
                                     </div>
 
                                     <Button
-                                        className="w-full bg-orange-500 hover:bg-orange-600"
+                                        className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                                         disabled={actionLoading === order._id}
                                         onClick={() => handleAccept(order._id)}
                                     >

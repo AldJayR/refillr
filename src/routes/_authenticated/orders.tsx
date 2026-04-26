@@ -65,7 +65,7 @@ function OrderHistory() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 p-4">
+        <div className="p-4">
             <div className="max-w-md mx-auto">
                 <div className="flex items-center gap-4 mb-6">
                     <Link to="/">
@@ -73,23 +73,23 @@ function OrderHistory() {
                             <ArrowLeft size={20} />
                         </Button>
                     </Link>
-                    <h1 className="text-xl font-bold text-white">My Orders</h1>
+                    <h1 className="text-xl font-bold text-foreground">My Orders</h1>
                 </div>
 
                 {/* Pending orders — cancellable */}
                 {pendingOrders.length > 0 && (
                     <div className="mb-6">
-                        <h2 className="text-sm font-medium text-yellow-400 mb-3">Pending ({pendingOrders.length})</h2>
+                        <h2 className="text-sm font-medium text-amber-500 mb-3">Pending ({pendingOrders.length})</h2>
                         <div className="space-y-3">
                             {pendingOrders.map((order: UserOrder) => (
                                 <div
                                     key={order._id}
-                                    className="glass-card rounded-xl p-5 animate-fade-in border-yellow-500/20"
+                                    className="glass-card rounded-xl p-5 animate-fade-in border-amber-500/20"
                                 >
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
-                                            <h3 className="font-semibold text-white">Refill Order</h3>
-                                            <p className="text-sm text-slate-400">
+                                            <h3 className="font-semibold text-foreground">Refill Order</h3>
+                                            <p className="text-sm text-muted-foreground">
                                                 {order.tankBrand} {order.tankSize} x{order.quantity}
                                             </p>
                                         </div>
@@ -102,7 +102,7 @@ function OrderHistory() {
                                     </div>
 
                                     <div className="flex items-center justify-between mb-3">
-                                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Clock size={14} />
                                             {order.createdAt ? formatDateTime(order.createdAt) : 'Just now'}
                                         </div>
@@ -112,7 +112,7 @@ function OrderHistory() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                                        className="w-full border-rose-500/30 text-rose-500 hover:bg-rose-500/10 hover:text-rose-600"
                                         disabled={cancellingId === order._id}
                                         onClick={() => handleCancel(order._id)}
                                     >
@@ -128,7 +128,7 @@ function OrderHistory() {
                 {/* Active orders — accepted/dispatched, not cancellable */}
                 {activeOrders.length > 0 && (
                     <div className="mb-6">
-                        <h2 className="text-sm font-medium text-blue-400 mb-3">In Progress ({activeOrders.length})</h2>
+                        <h2 className="text-sm font-medium text-blue-500 mb-3">In Progress ({activeOrders.length})</h2>
                         <div className="space-y-3">
                             {activeOrders.map((order: UserOrder) => (
                                 <div
@@ -137,8 +137,8 @@ function OrderHistory() {
                                 >
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
-                                            <h3 className="font-semibold text-white">Refill Order</h3>
-                                            <p className="text-sm text-slate-400">
+                                            <h3 className="font-semibold text-foreground">Refill Order</h3>
+                                            <p className="text-sm text-muted-foreground">
                                                 {order.tankBrand} {order.tankSize} x{order.quantity}
                                             </p>
                                         </div>
@@ -151,7 +151,7 @@ function OrderHistory() {
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Clock size={14} />
                                             {order.createdAt ? formatDateTime(order.createdAt) : 'Just now'}
                                         </div>
@@ -165,7 +165,7 @@ function OrderHistory() {
 
                 {/* Completed / Cancelled orders */}
                 <div>
-                    <h2 className="text-sm font-medium text-slate-400 mb-3">Order History</h2>
+                    <h2 className="text-sm font-medium text-muted-foreground mb-3">Order History</h2>
                     {completedOrders.length > 0 ? (
                         <div className="space-y-3">
                             {completedOrders.map((order: UserOrder) => (
@@ -175,8 +175,8 @@ function OrderHistory() {
                                 >
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
-                                            <h3 className="font-semibold text-white">Refill Order</h3>
-                                            <p className="text-sm text-slate-400">
+                                            <h3 className="font-semibold text-foreground">Refill Order</h3>
+                                            <p className="text-sm text-muted-foreground">
                                                 {order.tankBrand} {order.tankSize} x{order.quantity}
                                             </p>
                                         </div>
@@ -189,7 +189,7 @@ function OrderHistory() {
                                     </div>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <Clock size={14} />
                                             {order.createdAt ? formatDateTime(order.createdAt) : 'Completed'}
                                         </div>
@@ -200,10 +200,10 @@ function OrderHistory() {
                         </div>
                     ) : (
                         <div className="text-center py-8">
-                            <Package size={48} className="text-slate-600 mx-auto mb-4" />
-                            <p className="text-slate-400">No orders yet</p>
+                            <Package size={48} className="text-muted-foreground/30 mx-auto mb-4" />
+                            <p className="text-muted-foreground">No orders yet</p>
                             <Link to="/order/new">
-                                <Button className="mt-4 bg-orange-500 hover:bg-orange-600">
+                                <Button className="mt-4 bg-orange-500 hover:bg-orange-600 text-white">
                                     Place Your First Order
                                 </Button>
                             </Link>

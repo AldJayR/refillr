@@ -79,8 +79,8 @@ function RiderSetup() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white font-heading">Join as a Rider</h1>
-          <p className="text-slate-400 mt-2">Register your vehicle and start earning</p>
+          <h1 className="text-3xl font-bold text-foreground font-heading">Join as a Rider</h1>
+          <p className="text-muted-foreground mt-2">Register your vehicle and start earning</p>
         </div>
 
         {/* Progress */}
@@ -93,13 +93,13 @@ function RiderSetup() {
                     ? 'bg-orange-500 text-white'
                     : s === step
                     ? 'bg-orange-500 text-white'
-                    : 'bg-slate-800 text-slate-500'
+                    : 'bg-muted text-muted-foreground'
                 }`}
               >
                 {s < step ? <CheckCircle size={16} /> : s}
               </div>
               {s < 3 && (
-                <div className={`w-12 h-0.5 ${s < step ? 'bg-orange-500' : 'bg-slate-800'}`} />
+                <div className={`w-12 h-0.5 ${s < step ? 'bg-orange-500' : 'bg-muted'}`} />
               )}
             </div>
           ))}
@@ -107,9 +107,9 @@ function RiderSetup() {
 
         {/* Step 1: Personal Info */}
         {step === 1 && (
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <User size={20} className="text-orange-500" />
                 Personal Information
               </CardTitle>
@@ -129,7 +129,7 @@ function RiderSetup() {
 
                     return (
                       <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor="firstName" className="text-slate-300">
+                        <FieldLabel htmlFor="firstName" className="text-foreground">
                           First Name
                         </FieldLabel>
                         <Input
@@ -138,7 +138,7 @@ function RiderSetup() {
                           value={field.state.value}
                           onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
-                          className="bg-slate-800 border-slate-700 mt-1"
+                          className="bg-muted/50 border-border mt-1"
                           placeholder="Juan"
                           aria-invalid={isInvalid}
                         />
@@ -161,7 +161,7 @@ function RiderSetup() {
 
                     return (
                       <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor="lastName" className="text-slate-300">
+                        <FieldLabel htmlFor="lastName" className="text-foreground">
                           Last Name
                         </FieldLabel>
                         <Input
@@ -170,7 +170,7 @@ function RiderSetup() {
                           value={field.state.value}
                           onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
-                          className="bg-slate-800 border-slate-700 mt-1"
+                          className="bg-muted/50 border-border mt-1"
                           placeholder="Dela Cruz"
                           aria-invalid={isInvalid}
                         />
@@ -196,7 +196,7 @@ function RiderSetup() {
 
                     return (
                       <Field data-invalid={isInvalid}>
-                        <FieldLabel htmlFor="phone" className="text-slate-300">
+                        <FieldLabel htmlFor="phone" className="text-foreground">
                           Phone Number
                         </FieldLabel>
                         <Input
@@ -205,7 +205,7 @@ function RiderSetup() {
                           value={field.state.value}
                           onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
-                          className="bg-slate-800 border-slate-700 mt-1"
+                          className="bg-muted/50 border-border mt-1"
                           placeholder="+63 9XX XXX XXXX"
                           aria-invalid={isInvalid}
                         />
@@ -226,7 +226,7 @@ function RiderSetup() {
                       <Button
                         onClick={() => setStep(2)}
                         disabled={!canProceedStep1}
-                        className="w-full bg-orange-500 hover:bg-orange-600"
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white"
                       >
                         Next: Vehicle Details
                         <ArrowRight size={16} className="ml-2" />
@@ -241,9 +241,9 @@ function RiderSetup() {
 
         {/* Step 2: Vehicle */}
         {step === 2 && (
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Bike size={20} className="text-orange-500" />
                 Vehicle Details
               </CardTitle>
@@ -253,7 +253,7 @@ function RiderSetup() {
                 <form.Field name="vehicleType">
                   {(field) => (
                     <Field>
-                      <FieldLabel className="text-slate-300 mb-2 block">Vehicle Type</FieldLabel>
+                      <FieldLabel className="text-foreground mb-2 block">Vehicle Type</FieldLabel>
                       <div className="grid grid-cols-3 gap-3">
                         {VEHICLE_TYPES.map((v) => (
                           <button
@@ -262,8 +262,8 @@ function RiderSetup() {
                             onClick={() => field.handleChange(v.value)}
                             className={`p-3 rounded-lg border text-center transition-colors ${
                               field.state.value === v.value
-                                ? 'border-orange-500 bg-orange-500/10 text-white'
-                                : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'
+                                ? 'border-orange-500 bg-orange-500/10 text-foreground'
+                                : 'border-border bg-muted/50 text-muted-foreground hover:border-orange-500/50'
                             }`}
                           >
                             <span className="text-2xl block mb-1">{v.icon}</span>
@@ -278,7 +278,7 @@ function RiderSetup() {
                 <form.Field name="plateNumber">
                   {(field) => (
                     <Field>
-                      <FieldLabel htmlFor="plate" className="text-slate-300">
+                      <FieldLabel htmlFor="plate" className="text-foreground">
                         Plate Number (optional)
                       </FieldLabel>
                       <Input
@@ -287,7 +287,7 @@ function RiderSetup() {
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        className="bg-slate-800 border-slate-700 mt-1"
+                        className="bg-muted/50 border-border mt-1"
                         placeholder="ABC 1234"
                       />
                     </Field>
@@ -297,7 +297,7 @@ function RiderSetup() {
                 <form.Field name="licenseNumber">
                   {(field) => (
                     <Field>
-                      <FieldLabel htmlFor="license" className="text-slate-300">
+                      <FieldLabel htmlFor="license" className="text-foreground">
                         License Number (optional)
                       </FieldLabel>
                       <Input
@@ -306,7 +306,7 @@ function RiderSetup() {
                         value={field.state.value}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
-                        className="bg-slate-800 border-slate-700 mt-1"
+                        className="bg-muted/50 border-border mt-1"
                         placeholder="N01-23-456789"
                       />
                     </Field>
@@ -315,11 +315,11 @@ function RiderSetup() {
               </FieldGroup>
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 border-slate-700">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 border-border">
                   <ArrowLeft size={16} className="mr-2" />
                   Back
                 </Button>
-                <Button onClick={() => setStep(3)} className="flex-1 bg-orange-500 hover:bg-orange-600">
+                <Button onClick={() => setStep(3)} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">
                   Next: Review
                   <ArrowRight size={16} className="ml-2" />
                 </Button>
@@ -330,9 +330,9 @@ function RiderSetup() {
 
         {/* Step 3: Review & Submit */}
         {step === 3 && (
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <FileText size={20} className="text-orange-500" />
                 Review & Submit
               </CardTitle>
@@ -342,40 +342,40 @@ function RiderSetup() {
                 {([values, isSubmitting]) => (
                   <>
                     <div className="space-y-3 text-sm">
-                      <div className="flex justify-between py-2 border-b border-slate-800">
-                        <span className="text-slate-400">Name</span>
-                        <span className="text-white">{values.firstName} {values.lastName}</span>
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-muted-foreground">Name</span>
+                        <span className="text-foreground font-medium">{values.firstName} {values.lastName}</span>
                       </div>
-                      <div className="flex justify-between py-2 border-b border-slate-800">
-                        <span className="text-slate-400">Phone</span>
-                        <span className="text-white">{values.phoneNumber}</span>
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-muted-foreground">Phone</span>
+                        <span className="text-foreground font-medium">{values.phoneNumber}</span>
                       </div>
-                      <div className="flex justify-between py-2 border-b border-slate-800">
-                        <span className="text-slate-400">Vehicle</span>
-                        <span className="text-white capitalize">{values.vehicleType}</span>
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-muted-foreground">Vehicle</span>
+                        <span className="text-foreground font-medium capitalize">{values.vehicleType}</span>
                       </div>
                       {values.plateNumber && (
-                        <div className="flex justify-between py-2 border-b border-slate-800">
-                          <span className="text-slate-400">Plate</span>
-                          <span className="text-white">{values.plateNumber}</span>
+                        <div className="flex justify-between py-2 border-b border-border">
+                          <span className="text-muted-foreground">Plate</span>
+                          <span className="text-foreground font-medium">{values.plateNumber}</span>
                         </div>
                       )}
                       {values.licenseNumber && (
-                        <div className="flex justify-between py-2 border-b border-slate-800">
-                          <span className="text-slate-400">License</span>
-                          <span className="text-white">{values.licenseNumber}</span>
+                        <div className="flex justify-between py-2 border-b border-border">
+                          <span className="text-muted-foreground">License</span>
+                          <span className="text-foreground font-medium">{values.licenseNumber}</span>
                         </div>
                       )}
                     </div>
                     <div className="flex gap-3">
-                      <Button variant="outline" onClick={() => setStep(2)} className="flex-1 border-slate-700">
+                      <Button variant="outline" onClick={() => setStep(2)} className="flex-1 border-border">
                         <ArrowLeft size={16} className="mr-2" />
                         Back
                       </Button>
                       <Button
                         onClick={() => form.handleSubmit()}
                         disabled={isSubmitting}
-                        className="flex-1 bg-orange-500 hover:bg-orange-600"
+                        className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
                       >
                         {isSubmitting ? 'Creating...' : 'Register as Rider'}
                       </Button>

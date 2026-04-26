@@ -46,9 +46,11 @@ function DemandHeatmap() {
     const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
     mapboxgl.accessToken = accessToken || ''
 
+    const isDark = document.body.classList.contains('dark')
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: DEFAULT_CENTER,
       zoom: 12,
     })
@@ -110,20 +112,20 @@ function DemandHeatmap() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-white">Demand Heatmap</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Demand Heatmap</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Visualize where your orders are concentrated. Warmer colors = higher demand.
         </p>
       </div>
 
       <div
-        className="rounded-xl overflow-hidden border border-slate-800"
+        className="rounded-xl overflow-hidden border border-border"
         style={{ height: 'calc(100vh - 200px)' }}
       >
         <div ref={mapContainer} className="w-full h-full" />
       </div>
 
-      <div className="flex items-center gap-4 text-xs text-slate-400">
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <span>Orders shown: {orders.length}</span>
         <div className="flex items-center gap-2">
           <span>Low</span>

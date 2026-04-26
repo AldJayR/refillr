@@ -7,7 +7,7 @@ export const Route = createFileRoute('/sign-in/$')({
 
 function SignInPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="flex items-center justify-center p-4">
             <SignIn />
         </div>
     )
