@@ -5,18 +5,19 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { DEFAULT_LOCATION } from '@/lib/constants'
 import { useTheme } from '@/components/ThemeProvider'
+import { Order } from '@/lib/schemas'
 
 const DEFAULT_CENTER: [number, number] = [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat]
 
 export const Route = createFileRoute('/_authenticated/merchant/heatmap')({
   loader: ({ context }) => {
-    const merchantId = (context as any).merchantId as string
-    return getMerchantOrders({ data: { merchantId } })
+    const { merchantId } = context as { merchantId: string }
+    return getMerchantOrders({ data: { merchantId } }) as Promise<Order[]>
   },
   component: DemandHeatmap,
 })
 
-function ordersToGeoJSON(orders: any[]): GeoJSON.FeatureCollection {
+function ordersToGeoJSON(orders: Order[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: orders

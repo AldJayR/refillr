@@ -8,18 +8,19 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Package, Save } from 'lucide-react'
 import { TANK_SIZES as ALL_SIZES, TANK_BRANDS as ALL_BRANDS } from '@/lib/constants'
+import { Merchant } from '@/lib/schemas'
 
 export const Route = createFileRoute('/_authenticated/merchant/inventory')({
   loader: ({ context }) => {
-    const merchantId = (context as any).merchantId as string
-    return getMerchantById({ data: { merchantId } })
+    const { merchantId } = context as { merchantId: string }
+    return getMerchantById({ data: { merchantId } }) as Promise<Merchant>
   },
   component: InventoryManagement,
 })
 
 function InventoryManagement() {
   const merchant = Route.useLoaderData()
-  const { merchantId } = Route.useRouteContext() as any
+  const { merchantId } = Route.useRouteContext() as { merchantId: string }
 
   const [activeSizes, setActiveSizes] = useState<string[]>(
     merchant?.tankSizes ?? []
