@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { getMerchantOrders } from '@/server/orders.functions'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -38,60 +38,59 @@ function ordersToGeoJSON(orders: any[]): GeoJSON.FeatureCollection {
 function DemandHeatmap() {
   const { theme } = useTheme()
   const orders = Route.useLoaderData()
-  const mapContainer = useRef<HTMLDivElement>(null)
-  const map = useRef<mapboxgl.Map | null>(null)
+  const mapRef = useRef<mapboxgl.Map | null>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
 
-  useEffect(() => {
-    if (!mapContainer.current || map.current) return
+  /**
+   * REACT 19 MODERN PATTERN: Ref Callback with Cleanup
+   */
+  const mapContainerRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return
 
     const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
     mapboxgl.accessToken = accessToken || ''
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
+    const m = new mapboxgl.Map({
+      container: node,
       style: theme === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: DEFAULT_CENTER,
       zoom: 12,
     })
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    m.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    m.on('load', () => setMapLoaded(true))
 
-    map.current.on('load', () => {
-      setMapLoaded(true)
-    })
+    mapRef.current = m
 
     return () => {
-      map.current?.remove()
-      map.current = null
+      m.remove()
+      mapRef.current = null
+      setMapLoaded(false)
     }
-  }, [])
+  }, []) // Init once per container lifecycle
 
-  // Sync style with theme
+  // 1. Reactive Style Updates (Theme changes)
   useEffect(() => {
-    if (!map.current || !mapLoaded) return
-    map.current.setStyle(theme === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+    if (!mapRef.current || !mapLoaded) return
+    mapRef.current.setStyle(theme === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
   }, [theme, mapLoaded])
 
+  // 2. Reactive Data Updates (Heatmap layer)
   useEffect(() => {
-    if (!map.current || !mapLoaded) return
+    const m = mapRef.current
+    if (!m || !mapLoaded) return
 
     const geojson = ordersToGeoJSON(orders)
 
-    // Remove existing source/layer if re-rendering (check each independently)
-    if (map.current.getLayer('orders-heat-layer')) {
-      map.current.removeLayer('orders-heat-layer')
-    }
-    if (map.current.getSource('orders-heat')) {
-      map.current.removeSource('orders-heat')
-    }
+    if (m.getLayer('orders-heat-layer')) m.removeLayer('orders-heat-layer')
+    if (m.getSource('orders-heat')) m.removeSource('orders-heat')
 
-    map.current.addSource('orders-heat', {
+    m.addSource('orders-heat', {
       type: 'geojson',
       data: geojson,
     })
 
-    map.current.addLayer({
+    m.addLayer({
       id: 'orders-heat-layer',
       type: 'heatmap',
       source: 'orders-heat',
@@ -128,7 +127,7 @@ function DemandHeatmap() {
         className="rounded-xl overflow-hidden border border-border"
         style={{ height: 'calc(100vh - 200px)' }}
       >
-        <div ref={mapContainer} className="w-full h-full" />
+        <div ref={mapContainerRef} className="w-full h-full" />
       </div>
 
       <div className="flex items-center gap-4 text-xs text-muted-foreground">
