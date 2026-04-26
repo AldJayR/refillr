@@ -4,6 +4,7 @@ import { getMerchantOrders } from '@/server/orders.functions'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { DEFAULT_LOCATION } from '@/lib/constants'
+import { useTheme } from '@/components/ThemeProvider'
 
 const DEFAULT_CENTER: [number, number] = [DEFAULT_LOCATION.lng, DEFAULT_LOCATION.lat]
 
@@ -35,6 +36,7 @@ function ordersToGeoJSON(orders: any[]): GeoJSON.FeatureCollection {
 }
 
 function DemandHeatmap() {
+  const { theme } = useTheme()
   const orders = Route.useLoaderData()
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
@@ -46,11 +48,9 @@ function DemandHeatmap() {
     const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
     mapboxgl.accessToken = accessToken || ''
 
-    const isDark = document.body.classList.contains('dark')
-
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
+      style: theme === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: DEFAULT_CENTER,
       zoom: 12,
     })
@@ -66,6 +66,12 @@ function DemandHeatmap() {
       map.current = null
     }
   }, [])
+
+  // Sync style with theme
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return
+    map.current.setStyle(theme === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+  }, [theme, mapLoaded])
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return

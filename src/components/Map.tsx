@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { DEFAULT_LOCATION } from '@/lib/constants'
+import { useTheme } from './ThemeProvider'
 
 interface MapProps {
   center?: [number, number]
@@ -37,16 +38,14 @@ function escapeHtml(str: string): string {
 }
 
 /** Build HTML for a merchant map popup. */
-function buildMerchantPopupHtml(data: MerchantMarker): string {
+function buildMerchantPopupHtml(data: MerchantMarker, theme: string): string {
   const name = escapeHtml(data.shopName)
   const status = data.isOpen ? 'Open' : 'Closed'
   const verified = data.isVerified
     ? '<span class="text-xs text-green-600 font-medium">DOE Verified</span>'
     : ''
   
-  // Use semantic classes that Mapbox popups can use if we handle the container
-  // For now, simple detection for standard Mapbox styling
-  const isDark = document.body.classList.contains('dark')
+  const isDark = theme === 'dark'
   const textColor = isDark ? '#f8fafc' : '#0f172a'
   const subColor = isDark ? '#94a3b8' : '#475569'
 
@@ -60,9 +59,9 @@ function buildMerchantPopupHtml(data: MerchantMarker): string {
 }
 
 /** Build HTML for a rider map popup. */
-function buildRiderPopupHtml(data: RiderMarker): string {
+function buildRiderPopupHtml(data: RiderMarker, theme: string): string {
   const name = escapeHtml(data.name)
-  const isDark = document.body.classList.contains('dark')
+  const isDark = theme === 'dark'
   const textColor = isDark ? '#f8fafc' : '#0f172a'
 
   return `
@@ -81,6 +80,7 @@ export default function Map({
   onMarkerClick,
   onMapClick
 }: MapProps) {
+  const { theme } = useTheme()
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -93,24 +93,20 @@ export default function Map({
   const onMarkerClickRef = useRef(onMarkerClick)
   onMarkerClickRef.current = onMarkerClick
 
-  // Initialize map once — intentionally empty deps (map instance is long-lived)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Initialize map once
   useEffect(() => {
     if (!mapContainer.current || map.current) return
 
     const accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
-
     if (!accessToken) {
       console.warn('Mapbox access token not found. Set VITE_MAPBOX_ACCESS_TOKEN in your .env file.')
     }
 
     mapboxgl.accessToken = accessToken || ''
 
-    const isDark = document.body.classList.contains('dark')
-
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
+      style: theme === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11',
       center: center,
       zoom: zoom,
       pitch: 45,
@@ -128,7 +124,6 @@ export default function Map({
       setMapLoaded(true)
     })
 
-    // Use ref to always call the latest onMapClick — avoids stale closure
     map.current.on('click', (e) => {
       onMapClickRef.current?.([e.lngLat.lng, e.lngLat.lat])
     })
@@ -141,7 +136,13 @@ export default function Map({
       map.current?.remove()
       map.current = null
     }
-  }, [])
+  }, []) // Empty deps is fine, we handle style updates in a separate effect
+
+  // Sync style with theme
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return
+    map.current.setStyle(theme === 'dark' ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11')
+  }, [theme, mapLoaded])
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return
@@ -166,16 +167,13 @@ export default function Map({
           </svg>
         </div>
       `
-
       el.style.cursor = 'pointer'
-      
-      // Use ref to always call the latest onMarkerClick
       el.addEventListener('click', () => onMarkerClickRef.current?.(markerData.id))
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat(markerData.coordinates)
         .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(buildMerchantPopupHtml(markerData))
+          new mapboxgl.Popup({ offset: 25 }).setHTML(buildMerchantPopupHtml(markerData, theme))
         )
         .addTo(map.current!)
 
@@ -203,13 +201,13 @@ export default function Map({
       const marker = new mapboxgl.Marker(el)
         .setLngLat(markerData.coordinates)
         .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(buildRiderPopupHtml(markerData))
+          new mapboxgl.Popup({ offset: 25 }).setHTML(buildRiderPopupHtml(markerData, theme))
         )
         .addTo(map.current!)
 
       riderMarkersRef.current.push(marker)
     })
-  }, [markers, riderMarkers, mapLoaded])
+  }, [markers, riderMarkers, mapLoaded, theme])
 
   return (
     <div ref={mapContainer} className="w-full h-full min-h-[400px]" />
