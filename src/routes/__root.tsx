@@ -10,6 +10,7 @@ import { Toaster } from '../components/ui/sonner'
 
 import appCss from '../styles.css?url'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { useRouterState } from '@tanstack/react-router'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -86,6 +87,10 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
 }
 
 export function RootDocument({ children }: { children: React.ReactNode }) {
+  const router = useRouterState()
+  const isDashboard = router.location.pathname.startsWith('/merchant') || 
+                      router.location.pathname.startsWith('/rider')
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -93,8 +98,8 @@ export function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <AppProviders>
-          <Header />
-          <main className="pt-16">
+          {!isDashboard && <Header />}
+          <main className={isDashboard ? "" : "pt-16"}>
             <Suspense fallback={
               <div className="min-h-screen bg-slate-950 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">

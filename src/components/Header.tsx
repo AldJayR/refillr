@@ -81,6 +81,11 @@ export default function Header() {
 
           <div className="flex items-center gap-4">
             <SignedIn>
+              <Button asChild variant="ghost" size="icon" className="hidden sm:flex" title="My Orders">
+                <Link to="/orders">
+                  <ShoppingBag size={20} />
+                </Link>
+              </Button>
               {showSetupLinks && (
                 <Button asChild className="hidden md:flex" size="sm">
                   <Link to="/order/new">Order Now</Link>

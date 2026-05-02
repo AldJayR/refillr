@@ -135,6 +135,14 @@ function Dashboard() {
               </Link>
             </Button>
           </div>
+
+          <div className="animate-hero-fade-in hero-delay-4 mt-8 flex justify-center">
+            <Button asChild variant="link" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link to="/orders">
+                View My Orders & History
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
