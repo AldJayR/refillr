@@ -36,23 +36,25 @@ async function seed() {
       effectiveDate: new Date('2026-04-27'),
     })
 
-    // 3. Create Users
-    console.log('👤 Seeding users...')
-    const merchantUser = await createTestUser({ 
-      clerkId: 'user_merchant_1', 
-      email: 'merchant@refillr.ph', 
-      role: 'merchant' 
-    })
-    const riderUser = await createTestUser({ 
-      clerkId: 'user_rider_1', 
-      email: 'rider@refillr.ph', 
-      role: 'rider' 
-    })
-    const customerUser = await createTestUser({ 
-      clerkId: 'user_customer_1', 
-      email: 'customer@refillr.ph', 
-      role: 'customer' 
-    })
+    // 3. Create 10 Users (to satisfy 10 documents per collection)
+    console.log('👤 Seeding 10 users...')
+    const users = []
+    const roles: Array<'customer' | 'merchant' | 'rider'> = ['merchant', 'rider', 'customer', 'customer', 'customer', 'customer', 'customer', 'customer', 'customer', 'customer']
+    
+    for (let i = 0; i < 10; i++) {
+      const user = await createTestUser({
+        clerkId: `user_${i + 1}`,
+        email: `${roles[i]}_${i + 1}@refillr.ph`,
+        firstName: `Test${i + 1}`,
+        lastName: `User${i + 1}`,
+        role: roles[i]
+      })
+      users.push(user)
+    }
+
+    const merchantUser = users[0]
+    const riderUser = users[1]
+    const customerUser = users[2]
 
     // 4. Create Merchants (10 documents for the assignment)
     console.log('🏪 Seeding 10 merchant profiles...')
@@ -65,7 +67,7 @@ async function seed() {
 
     for (let i = 0; i < 10; i++) {
       const merchant = await createTestMerchant({
-        ownerUserId: i === 0 ? merchantUser.clerkId : `user_merchant_${i+1}`,
+        ownerUserId: users[i].clerkId, // Link each merchant to one of the 10 users
         shopName: shopNames[i],
         location: {
           type: 'Point',
