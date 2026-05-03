@@ -83,15 +83,20 @@ async function seed() {
       merchants.push(merchant)
     }
 
-    // 5. Create Rider
-    console.log('🛵 Seeding rider profile...')
-    await createTestRider({
-      userId: riderUser.clerkId,
-      firstName: 'Ricardo',
-      lastName: 'Rider',
-      isOnline: true,
-      lastLocation: { type: 'Point', coordinates: [120.9700, 15.4800] }
-    })
+    // 5. Create 10 Riders
+    console.log('🛵 Seeding 10 rider profiles...')
+    for (let i = 0; i < 10; i++) {
+      await createTestRider({
+        userId: users[i].clerkId,
+        firstName: `Rider${i + 1}`,
+        lastName: `User`,
+        isOnline: true,
+        lastLocation: { 
+          type: 'Point', 
+          coordinates: [120.9700 + (Math.random() - 0.5) * 0.03, 15.4800 + (Math.random() - 0.5) * 0.03] 
+        }
+      })
+    }
 
     // 6. Create Orders (10 documents for the assignment)
     console.log('📦 Seeding 10 sample orders...')
@@ -111,7 +116,7 @@ async function seed() {
     }
 
     console.log('✅ Seeding completed successfully!')
-    console.log('Created: 10 Merchants, 10 Orders, 1 Rider, 1 DOE Config.')
+    console.log('Created: 10 Users, 10 Merchants, 10 Riders, 10 Orders, 1 DOE Config.')
     
   } catch (error) {
     console.error('❌ Seeding failed:', error)
