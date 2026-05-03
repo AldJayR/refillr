@@ -88,8 +88,10 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
 
 export function RootDocument({ children }: { children: React.ReactNode }) {
   const router = useRouterState()
-  const isDashboard = router.location.pathname.startsWith('/merchant') || 
-                      router.location.pathname.startsWith('/rider')
+  const isDashboard = router.location.pathname.startsWith('/merchant/') || 
+                      router.location.pathname === '/merchant' ||
+                      router.location.pathname.startsWith('/rider/') ||
+                      router.location.pathname === '/rider'
 
   return (
     <html lang="en" suppressHydrationWarning>
